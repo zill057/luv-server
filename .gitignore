@@ -1,3 +1,5 @@
 .idea/
 luvserver.iml
 target/
+.vertx/
+src/main/generated/
