@@ -2,6 +2,7 @@ package com.hiwangzi.luv.run;
 
 import com.hiwangzi.luv.message.listening.MessageListeningVerticle;
 import com.hiwangzi.luv.message.storage.StorageVerticle;
+import com.hiwangzi.luv.connection.ConnectionListeningVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import org.slf4j.Logger;
@@ -22,9 +23,17 @@ public class Run {
 
         ).setHandler(ar -> {
             if (ar.succeeded()) {
-                LOGGER.info("Deploy successfully");
+                LOGGER.info("Deploy message verticle successfully");
             } else {
-                LOGGER.error("Deploy unsuccessfully: ", ar.cause());
+                LOGGER.error("Deploy message verticle unsuccessfully: ", ar.cause());
+            }
+        });
+
+        vertx.deployVerticle(ConnectionListeningVerticle.class.getName(), ar -> {
+            if (ar.succeeded()) {
+                LOGGER.info("Deploy connection verticle successfully");
+            } else {
+                LOGGER.error("Deploy connection verticle unsuccessfully: ", ar.cause());
             }
         });
     }
