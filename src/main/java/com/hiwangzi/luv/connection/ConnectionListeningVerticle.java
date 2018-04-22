@@ -1,66 +1,109 @@
 package com.hiwangzi.luv.connection;
 
+import com.hiwangzi.luv.storage.StorageService;
+import io.netty.util.internal.StringUtil;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
-import io.vertx.core.http.HttpServer;
+import io.vertx.core.Handler;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 
 public class ConnectionListeningVerticle extends AbstractVerticle {
 
-    // TODO just for test
-    private static final Map<String, JsonObject> tokenAccount = new HashMap<>();
-
-    static {
-        tokenAccount.put("wangzitoken", new JsonObject().put("accid", "wangzi"));
-        tokenAccount.put("xiaomingtoken", new JsonObject().put("accid", "xiaoming"));
-    }
-
-    private Router router = Router.router(vertx);
-
     @Override
     public void start(Future<Void> startFuture) throws Exception {
 
-        HttpServer httpServer = vertx.createHttpServer();
-        HttpServer webSocketServer = vertx.createHttpServer();
+        StorageService storageService = StorageService.createProxy(vertx, "db.queue");
 
-        httpServer.requestHandler(router::accept);
-        router.get("/websocket").handler(routingContext -> {
-            JsonObject account = tokenAccount.<JsonObject>get(routingContext.request().headers().get("token"));
-
-            if (account != null) {
+        Handler<HttpServerRequest> httpRequestHandler = httpRequest -> {
+            Router router = Router.router(vertx);
+            router.route().handler(routingContext -> {
+                String token = routingContext.request().getHeader("token");
+                if (StringUtil.isNullOrEmpty(token)) {
+                    routingContext.fail(401);
+                } else {
+                    storageService.getAccountByToken(
+                            token,
+                            accountsRes -> {
+                                if (accountsRes.succeeded()) {
+                                    // 目前 ws_token 同样存储在数据库，因此可能会查询出多个 account
+                                    // TODO 但 1.0 版本暂时不考虑多终端同步问题
+                                    List<JsonObject> accountList = accountsRes.result();
+                                    if (accountList.size() == 0) {
+                                        routingContext.fail(401);
+                                    } else {
+                                        routingContext.put("account", accountList.get(0));
+                                        routingContext.next();
+                                    }
+                                } else {
+                                    routingContext.fail(accountsRes.cause());
+                                }
+                            }
+                    );
+                }
+            });
+            router.get("/websocket").handler(routingContext -> {
                 String wsToken = UUID.randomUUID().toString();
-                account.put("wsToken", wsToken);
-                JsonObject response = new JsonObject().put("WebSocket", "ws://127.0.0.1:8090/?" + wsToken);
-                routingContext.request().response()
-                        .putHeader("Content-Type", "application/json;charset=utf-8")
-                        .end(response.encode());
-            } else {
-                routingContext.fail(400);
-            }
-        });
+                storageService.updateWsTokenByToken(
+                        routingContext.<JsonObject>get("account").getString("token"),
+                        wsToken,
+                        ar -> {
+                            if (ar.succeeded()) {
+                                JsonObject response = new JsonObject().put("WebSocket", "ws://127.0.0.1/?" + wsToken);
+                                routingContext.request().response()
+                                        .putHeader("Content-Type", "application/json;charset=utf-8")
+                                        .end(response.encode());
+                            } else {
+                                routingContext.fail(ar.cause());
+                            }
+                        }
+                );
+            });
+            router.accept(httpRequest);
+        };
 
-        webSocketServer.websocketHandler(ws -> {
-            final String textHandlerID = ws.textHandlerID();
+        Handler<ServerWebSocket> webSocketHandler = ws -> {
+
             String wsToken = ws.query();
-            JsonObject account = tokenAccount.<JsonObject>get(wsToken);
-            if (account == null) {
-                // 未经验证的请求
-                ws.reject(400);
+            final String textHandlerID = ws.textHandlerID();
+            final String binaryHandlerID = ws.binaryHandlerID();
+            if (StringUtil.isNullOrEmpty(wsToken)) {
+                ws.reject(401);
             } else {
-                ws.handler(data -> {
-                    account.put("wsTextHandlerId", textHandlerID);
-                });
-                ws.closeHandler(event -> account.remove("wsTextHandlerId"));
+                storageService.updateWsHandlerIdByWsTokenRetuningAccount(
+                        wsToken, textHandlerID, binaryHandlerID,
+                        accountsRes -> {
+                            if (accountsRes.succeeded()) {
+                                // 目前 ws_token 同样存储在数据库，因此可能会查询出多个 account
+                                // TODO 但 1.0 版本暂时不考虑多终端同步问题
+                                List<JsonObject> accountList = accountsRes.result();
+                                if (accountList.size() == 0) {
+                                    ws.reject(401);
+                                } else {
+                                    ws.handler(data -> {
+                                        // TODO
+                                    });
+                                    ws.closeHandler(event -> {
+                                        // TODO
+                                    });
+                                }
+                            } else {
+                                ws.reject(500);
+                            }
+                        }
+                );
             }
-        });
+        };
 
-        httpServer.listen(80);
-        webSocketServer.listen(8090);
+        vertx.createHttpServer()
+                .requestHandler(httpRequestHandler)
+                .websocketHandler(webSocketHandler)
+                .listen(80);
 
         startFuture.complete();
     }
