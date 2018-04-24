@@ -1,5 +1,7 @@
-package com.hiwangzi.luv.message.storage;
+package com.hiwangzi.luv.storage;
 
+import com.hiwangzi.luv.storage.account.AccountStorageService;
+import com.hiwangzi.luv.storage.message.MessageStorageService;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -15,7 +17,9 @@ public class StorageVerticle extends AbstractVerticle {
     public static final String CONFIG_DB_PASSWORD = "db.luv.password";
     public static final String CONFIG_DB_NAME = "db.luv.name";
     public static final String CONFIG_DB_MAX_POOL_SIZE = "db.luv.max_pool_size";
+    public static final String CONFIG_ACCOUNT_DB_QUEUE = "account.db.queue";
     public static final String CONFIG_MESSAGE_DB_QUEUE = "message.db.queue";
+
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
@@ -28,16 +32,31 @@ public class StorageVerticle extends AbstractVerticle {
                 .put("database", config().getString(CONFIG_DB_NAME, "luv"))
                 .put("maxPoolSize", config().getInteger(CONFIG_DB_MAX_POOL_SIZE, 30)));
 
-        StorageService.create(asyncSQLClient, ready -> {
-            if (ready.succeeded()) {
-                new ServiceBinder(vertx)
-                        .setAddress(CONFIG_MESSAGE_DB_QUEUE)
-                        .register(StorageService.class, ready.result());
-                startFuture.complete();
-            } else {
-                startFuture.fail(ready.cause());
-            }
-        });
+        Future.<Void>future(createAccountStorageServiceFuture -> {
+            AccountStorageService.create(asyncSQLClient, ready -> {
+                if (ready.succeeded()) {
+                    new ServiceBinder(vertx)
+                            .setAddress(CONFIG_ACCOUNT_DB_QUEUE)
+                            .register(AccountStorageService.class, ready.result());
+                    createAccountStorageServiceFuture.complete();
+                } else {
+                    createAccountStorageServiceFuture.fail(ready.cause());
+                }
+            });
+        }).compose(nothing -> Future.<Void>future(createMessageStorageFuture -> {
+            MessageStorageService.create(asyncSQLClient, ready -> {
+                if (ready.succeeded()) {
+                    new ServiceBinder(vertx)
+                            .setAddress(CONFIG_MESSAGE_DB_QUEUE)
+                            .register(MessageStorageService.class, ready.result());
+                    createMessageStorageFuture.complete();
+                } else {
+                    createMessageStorageFuture.fail(ready.cause());
+                }
+            });
+        })).setHandler(startFuture.completer());
+
+
     }
 
 }

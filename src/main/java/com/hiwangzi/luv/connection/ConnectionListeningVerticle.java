@@ -1,6 +1,9 @@
 package com.hiwangzi.luv.connection;
 
-import com.hiwangzi.luv.storage.StorageService;
+import com.hiwangzi.luv.data.DataProcessingService;
+import com.hiwangzi.luv.data.DataProcessingVerticle;
+import com.hiwangzi.luv.storage.StorageVerticle;
+import com.hiwangzi.luv.storage.account.AccountStorageService;
 import io.netty.util.internal.StringUtil;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -9,16 +12,21 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.UUID;
 
 public class ConnectionListeningVerticle extends AbstractVerticle {
 
+    private AccountStorageService accountStorageService;
+    private DataProcessingService dataProcessingService;
+
     @Override
     public void start(Future<Void> startFuture) throws Exception {
 
-        StorageService storageService = StorageService.createProxy(vertx, "db.queue");
+        accountStorageService = AccountStorageService.createProxy(vertx, StorageVerticle.CONFIG_ACCOUNT_DB_QUEUE);
+        dataProcessingService = DataProcessingService.createProxy(vertx, DataProcessingVerticle.CONFIG_DATA_PROCESSING_QUEUE);
 
         Handler<HttpServerRequest> httpRequestHandler = httpRequest -> {
             Router router = Router.router(vertx);
@@ -27,7 +35,7 @@ public class ConnectionListeningVerticle extends AbstractVerticle {
                 if (StringUtil.isNullOrEmpty(token)) {
                     routingContext.fail(401);
                 } else {
-                    storageService.getAccountByToken(
+                    accountStorageService.getAccountByToken(
                             token,
                             accountsRes -> {
                                 if (accountsRes.succeeded()) {
@@ -49,7 +57,7 @@ public class ConnectionListeningVerticle extends AbstractVerticle {
             });
             router.get("/websocket").handler(routingContext -> {
                 String wsToken = UUID.randomUUID().toString();
-                storageService.updateWsTokenByToken(
+                accountStorageService.updateWsTokenByToken(
                         routingContext.<JsonObject>get("account").getString("token"),
                         wsToken,
                         ar -> {
@@ -72,10 +80,10 @@ public class ConnectionListeningVerticle extends AbstractVerticle {
             String wsToken = ws.query();
             final String textHandlerID = ws.textHandlerID();
             final String binaryHandlerID = ws.binaryHandlerID();
-            if (StringUtil.isNullOrEmpty(wsToken)) {
+            if (StringUtils.isBlank(wsToken)) {
                 ws.reject(401);
             } else {
-                storageService.updateWsHandlerIdByWsTokenRetuningAccount(
+                accountStorageService.updateWsHandlerIdByWsTokenRetuningAccount(
                         wsToken, textHandlerID, binaryHandlerID,
                         accountsRes -> {
                             if (accountsRes.succeeded()) {
@@ -86,7 +94,28 @@ public class ConnectionListeningVerticle extends AbstractVerticle {
                                     ws.reject(401);
                                 } else {
                                     ws.handler(data -> {
-                                        // TODO
+                                        JsonObject dataJson;
+                                        try {
+                                            dataJson = data.toJsonObject()
+                                                    .put("fromAccid", accountList.get(0).getString("accid"));
+                                            dataProcessingService.process(dataJson, ar -> {
+                                                if (ar.succeeded()) {
+                                                    JsonObject response = new JsonObject().put("code", 200);
+                                                    if (ar.result() != null) {
+                                                        response.put("data", ar.result());
+                                                    }
+                                                    vertx.eventBus().send(textHandlerID, response.encode());
+                                                } else {
+                                                    vertx.eventBus().send(textHandlerID, new JsonObject()
+                                                            .put("code", 500).put("message", ar.cause().getMessage()).encode()
+                                                    );
+                                                }
+                                            });
+                                        } catch (Exception e) {
+                                            vertx.eventBus().send(textHandlerID, new JsonObject()
+                                                    .put("code", 400).put("message", e.getMessage())
+                                            );
+                                        }
                                     });
                                     ws.closeHandler(event -> {
                                         // TODO
