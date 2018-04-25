@@ -118,7 +118,7 @@ public class ConnectionListeningVerticle extends AbstractVerticle {
                                         }
                                     });
                                     ws.closeHandler(event -> {
-                                        // TODO
+                                        // TODO 删除 accout 表中 handlerId 记录
                                     });
                                 }
                             } else {

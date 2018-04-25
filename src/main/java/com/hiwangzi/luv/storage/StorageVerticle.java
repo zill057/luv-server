@@ -2,6 +2,7 @@ package com.hiwangzi.luv.storage;
 
 import com.hiwangzi.luv.storage.account.AccountStorageService;
 import com.hiwangzi.luv.storage.message.MessageStorageService;
+import com.hiwangzi.luv.storage.push.PushStorageService;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -19,6 +20,7 @@ public class StorageVerticle extends AbstractVerticle {
     public static final String CONFIG_DB_MAX_POOL_SIZE = "db.luv.max_pool_size";
     public static final String CONFIG_ACCOUNT_DB_QUEUE = "account.db.queue";
     public static final String CONFIG_MESSAGE_DB_QUEUE = "message.db.queue";
+    public static final String CONFIG_PUSH_DB_QUEUE = "push.db.queue";
 
 
     @Override
@@ -52,6 +54,17 @@ public class StorageVerticle extends AbstractVerticle {
                     createMessageStorageFuture.complete();
                 } else {
                     createMessageStorageFuture.fail(ready.cause());
+                }
+            });
+        })).compose(nothing -> Future.<Void>future(createPushStorageStorageFuture -> {
+            PushStorageService.create(asyncSQLClient, ready -> {
+                if (ready.succeeded()) {
+                    new ServiceBinder(vertx)
+                            .setAddress(CONFIG_PUSH_DB_QUEUE)
+                            .register(PushStorageService.class, ready.result());
+                    createPushStorageStorageFuture.complete();
+                } else {
+                    createPushStorageStorageFuture.fail(ready.cause());
                 }
             });
         })).setHandler(startFuture.completer());
