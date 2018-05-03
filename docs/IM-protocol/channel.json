@@ -1,0 +1,84 @@
+[
+  {
+    "comment": "1. 建立channel（客户端-服务端）",
+    "header": {
+      "topic": "channel.init"
+    },
+    "payload": {
+      "channel": {
+        "type": "GROUP",
+        "channelId": "4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
+        "channelName": "whatever",
+        "accids": [
+          "xiaohong",
+          "xiaoming"
+        ]
+      }
+    }
+  },
+  {
+    "comment": "1. 建立channel（服务端-客户端）",
+    "header": {
+      "topic": "channel.init",
+      "code": 200
+    },
+    "payload": {
+      "channelId": "4d2db3e6-b477-450b-ba3a-6ed30c1319d6"
+    }
+  },
+  {
+    "comment": "2. 获取channel列表（客户端-服务端）",
+    "header": {
+      "topic": "channel.list"
+    }
+  },
+  {
+    "comment": "2. 获取channel列表（服务端-客户端）",
+    "header": {
+      "topic": "channel.list",
+      "code": 200
+    },
+    "payload": {
+      "channelList": [
+        {
+          "channelName": "小红",
+          "channelId": "af23789a-07b5-4e0e-b26d-bc69cc4db699"
+        },
+        {
+          "channelName": "超级群聊",
+          "channelId": "5e6e8c56-8803-4117-8539-24b29eea65c2"
+        }
+      ]
+    }
+  },
+  {
+    "comment": "3. 获取channel详情（客户端-服务端）",
+    "header": {
+      "topic": "channel.info"
+    },
+    "payload": {
+      "channelId": "5e6e8c56-8803-4117-8539-24b29eea65c2"
+    }
+  },
+  {
+    "comment": "3. 获取channel详情（服务端-客户端）",
+    "header": {
+      "topic": "channel.info",
+      "code": 200
+    },
+    "payload": {
+      "channel": {
+        "type": "GROUP",
+        "channelId": "5e6e8c56-8803-4117-8539-24b29eea65c2",
+        "channelName": "whatever",
+        "admins": [
+          "xiaohong"
+        ],
+        "accids": [
+          "xiaohong",
+          "xiaoming"
+        ]
+      }
+    }
+  }
+]

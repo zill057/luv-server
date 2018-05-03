@@ -1,0 +1,117 @@
+[
+  {
+    "comment": "1. 发送消息（客户端-服务端）",
+    "header": {
+      "topic": "message.send"
+    },
+    "payload": {
+      "message": {
+        "toChannel": "4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
+        "messageId": "37705aa5-c656-4833-aa67-3d26c4793b6b",
+        "type": "TEXT",
+        "content": "世界，你好！"
+      }
+    }
+  },
+  {
+    "comment": "1. 发送消息（服务端-客户端）",
+    "header": {
+      "topic": "message.send",
+      "code": 200
+    },
+    "payload": {
+      "message": {
+        "messageId": "37705aa5-c656-4833-aa67-3d26c4793b6b",
+        "createTime": 1525354624000
+      }
+    }
+  },
+  {
+    "comment": "2. 获取消息列表（客户端-服务端）",
+    "header": {
+      "topic": "message.list.after"
+    },
+    "payload": {
+      "channelId": "5e6e8c56-8803-4117-8539-24b29eea65c2",
+      "messageId": "37705aa5-c656-4833-aa67-3d26c4793b6b"
+      // 获取自此 id 之后的消息
+    }
+  },
+  {
+    "comment": "2. 获取消息列表（服务端-客户端）",
+    "header": {
+      "topic": "message.list.after"
+    },
+    "payload": {
+      "channelId": "5e6e8c56-8803-4117-8539-24b29eea65c2",
+      "messageList": [
+        {
+          "messageId": "2a3efdb7-e372-4918-a481-bcbc06c61642",
+          "fromAccid": "xiaohong",
+          "createTime": 1525354624000,
+          "type": "TEXT",
+          "content": "世界，你好！"
+        },
+        {
+          "messageId": "c9dc3067-5817-4bad-b746-6531b344914f",
+          "fromAccid": "xiaoming",
+          "createTime": 1525354624100,
+          "type": "TEXT",
+          "content": "Hello, world！"
+        }
+      ]
+    }
+  },
+  {
+    "comment": "3. 获取消息列表（客户端-服务端）",
+    "header": {
+      "topic": "message.list.before"
+    },
+    "payload": {
+      "channelId": "5e6e8c56-8803-4117-8539-24b29eea65c2",
+      "messageId": "37705aa5-c656-4833-aa67-3d26c4793b6b"
+      // 获取自此 id 之前的消息
+    }
+  },
+  {
+    "comment": "3. 获取消息列表（服务端-客户端）",
+    "header": {
+      "topic": "message.list.before"
+    },
+    "payload": {
+      "channelId": "5e6e8c56-8803-4117-8539-24b29eea65c2",
+      "messageList": [
+        {
+          "messageId": "0942fd77-ebbe-4178-879f-dd03b55900c8",
+          "fromAccid": "xiaohong",
+          "createTime": 1525354622000,
+          "type": "TEXT",
+          "content": "世界，你好！"
+        },
+        {
+          "messageId": "6212f5c7-8494-4fcf-a432-20298488977a",
+          "fromAccid": "xiaoming",
+          "createTime": 1525354623000,
+          "type": "TEXT",
+          "content": "Hello, world！"
+        }
+      ]
+    }
+  },
+  {
+    "comment": "4. 推送消息（服务端-客户端）",
+    "header": {
+      "topic": "message.push"
+    },
+    "payload": {
+      "channelId": "5e6e8c56-8803-4117-8539-24b29eea65c2",
+      "message": {
+        "messageId": "0942fd77-ebbe-4178-879f-dd03b55900c8",
+        "fromAccid": "xiaohong",
+        "createTime": 1525354622000,
+        "type": "TEXT",
+        "content": "世界，你好！"
+      }
+    }
+  }
+]
