@@ -3,6 +3,7 @@ package com.hiwangzi.luv.run;
 
 import com.hiwangzi.luv.connection.ConnectionListeningVerticle;
 import com.hiwangzi.luv.data.DataProcessingVerticle;
+import com.hiwangzi.luv.push.PushVerticle;
 import com.hiwangzi.luv.storage.StorageVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -16,7 +17,6 @@ public class Run {
 
     public static void main(String[] args) {
 
-
         Future.<String>future(storageVerticleDeployment ->
                 vertx.deployVerticle(StorageVerticle.class.getName(),
                         storageVerticleDeployment.completer())
@@ -25,24 +25,20 @@ public class Run {
                 vertx.deployVerticle(ConnectionListeningVerticle.class.getName(),
                         connectionListeningVerticleDeployment.completer()))
 
-        ).setHandler(ar -> {
-            if (ar.succeeded()) {
-                LOGGER.info("Deploy connection verticle successfully");
-            } else {
-                LOGGER.error("Deploy connection verticle unsuccessfully: ", ar.cause());
-            }
-        });
-
-        Future.<String>future(dataProcessingVerticleDeployment ->
+        ).compose(id -> Future.<String>future(dataProcessingVerticleDeployment ->
                 vertx.deployVerticle(DataProcessingVerticle.class.getName(),
-                        dataProcessingVerticleDeployment.completer())
+                        dataProcessingVerticleDeployment.completer()))
+
+        ).compose(id -> Future.<String>future(pushVerticleDeployment ->
+                vertx.deployVerticle(PushVerticle.class.getName(),
+                        pushVerticleDeployment.completer()))
+
         ).setHandler(ar -> {
             if (ar.succeeded()) {
-                LOGGER.info("Deploy data-processing verticle successfully");
+                LOGGER.info("Deploy successfully");
             } else {
-                LOGGER.error("Deploy data-processing verticle unsuccessfully: ", ar.cause());
+                LOGGER.error("Deploy unsuccessfully: ", ar.cause());
             }
         });
-
     }
 }

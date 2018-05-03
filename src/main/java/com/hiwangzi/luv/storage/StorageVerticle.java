@@ -1,8 +1,5 @@
 package com.hiwangzi.luv.storage;
 
-import com.hiwangzi.luv.storage.account.AccountStorageService;
-import com.hiwangzi.luv.storage.message.MessageStorageService;
-import com.hiwangzi.luv.storage.push.PushStorageService;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -18,9 +15,7 @@ public class StorageVerticle extends AbstractVerticle {
     public static final String CONFIG_DB_PASSWORD = "db.luv.password";
     public static final String CONFIG_DB_NAME = "db.luv.name";
     public static final String CONFIG_DB_MAX_POOL_SIZE = "db.luv.max_pool_size";
-    public static final String CONFIG_ACCOUNT_DB_QUEUE = "account.db.queue";
-    public static final String CONFIG_MESSAGE_DB_QUEUE = "message.db.queue";
-    public static final String CONFIG_PUSH_DB_QUEUE = "push.db.queue";
+    public static final String CONFIG_DB_QUEUE = "message.db.queue";
 
 
     @Override
@@ -34,42 +29,17 @@ public class StorageVerticle extends AbstractVerticle {
                 .put("database", config().getString(CONFIG_DB_NAME, "luv"))
                 .put("maxPoolSize", config().getInteger(CONFIG_DB_MAX_POOL_SIZE, 30)));
 
-        Future.<Void>future(createAccountStorageServiceFuture -> {
-            AccountStorageService.create(asyncSQLClient, ready -> {
+        Future.<Void>future(createMessageStorageFuture -> {
+            StorageService.create(asyncSQLClient, ready -> {
                 if (ready.succeeded()) {
                     new ServiceBinder(vertx)
-                            .setAddress(CONFIG_ACCOUNT_DB_QUEUE)
-                            .register(AccountStorageService.class, ready.result());
-                    createAccountStorageServiceFuture.complete();
-                } else {
-                    createAccountStorageServiceFuture.fail(ready.cause());
-                }
-            });
-        }).compose(nothing -> Future.<Void>future(createMessageStorageFuture -> {
-            MessageStorageService.create(asyncSQLClient, ready -> {
-                if (ready.succeeded()) {
-                    new ServiceBinder(vertx)
-                            .setAddress(CONFIG_MESSAGE_DB_QUEUE)
-                            .register(MessageStorageService.class, ready.result());
+                            .setAddress(CONFIG_DB_QUEUE)
+                            .register(StorageService.class, ready.result());
                     createMessageStorageFuture.complete();
                 } else {
                     createMessageStorageFuture.fail(ready.cause());
                 }
             });
-        })).compose(nothing -> Future.<Void>future(createPushStorageStorageFuture -> {
-            PushStorageService.create(asyncSQLClient, ready -> {
-                if (ready.succeeded()) {
-                    new ServiceBinder(vertx)
-                            .setAddress(CONFIG_PUSH_DB_QUEUE)
-                            .register(PushStorageService.class, ready.result());
-                    createPushStorageStorageFuture.complete();
-                } else {
-                    createPushStorageStorageFuture.fail(ready.cause());
-                }
-            });
-        })).setHandler(startFuture.completer());
-
-
+        }).setHandler(startFuture.completer());
     }
-
 }

@@ -2,8 +2,8 @@ package com.hiwangzi.luv.connection;
 
 import com.hiwangzi.luv.data.DataProcessingService;
 import com.hiwangzi.luv.data.DataProcessingVerticle;
+import com.hiwangzi.luv.storage.StorageService;
 import com.hiwangzi.luv.storage.StorageVerticle;
-import com.hiwangzi.luv.storage.account.AccountStorageService;
 import io.netty.util.internal.StringUtil;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -19,13 +19,13 @@ import java.util.UUID;
 
 public class ConnectionListeningVerticle extends AbstractVerticle {
 
-    private AccountStorageService accountStorageService;
+    private StorageService storageService;
     private DataProcessingService dataProcessingService;
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
 
-        accountStorageService = AccountStorageService.createProxy(vertx, StorageVerticle.CONFIG_ACCOUNT_DB_QUEUE);
+        storageService = StorageService.createProxy(vertx, StorageVerticle.CONFIG_DB_QUEUE);
         dataProcessingService = DataProcessingService.createProxy(vertx, DataProcessingVerticle.CONFIG_DATA_PROCESSING_QUEUE);
 
         Handler<HttpServerRequest> httpRequestHandler = httpRequest -> {
@@ -35,7 +35,7 @@ public class ConnectionListeningVerticle extends AbstractVerticle {
                 if (StringUtil.isNullOrEmpty(token)) {
                     routingContext.fail(401);
                 } else {
-                    accountStorageService.getAccountByToken(
+                    storageService.getAccountByToken(
                             token,
                             accountsRes -> {
                                 if (accountsRes.succeeded()) {
@@ -55,9 +55,13 @@ public class ConnectionListeningVerticle extends AbstractVerticle {
                     );
                 }
             });
+
+            // HTTP GET /websocket
+            // Header token
+            // Response JSON {"WebSocket":"ws://127.0.0.1/?086729a9-8bc3-44a7-8aef-df23d753b1d5"}
             router.get("/websocket").handler(routingContext -> {
                 String wsToken = UUID.randomUUID().toString();
-                accountStorageService.updateWsTokenByToken(
+                storageService.updateWsTokenByToken(
                         routingContext.<JsonObject>get("account").getString("token"),
                         wsToken,
                         ar -> {
@@ -83,7 +87,7 @@ public class ConnectionListeningVerticle extends AbstractVerticle {
             if (StringUtils.isBlank(wsToken)) {
                 ws.reject(401);
             } else {
-                accountStorageService.updateWsHandlerIdByWsTokenRetuningAccount(
+                storageService.updateWsHandlerIdByWsTokenRetuningAccount(
                         wsToken, textHandlerID, binaryHandlerID,
                         accountsRes -> {
                             if (accountsRes.succeeded()) {
@@ -91,13 +95,14 @@ public class ConnectionListeningVerticle extends AbstractVerticle {
                                 // TODO 但 1.0 版本暂时不考虑多终端同步问题
                                 List<JsonObject> accountList = accountsRes.result();
                                 if (accountList.size() == 0) {
-                                    ws.reject(401);
+                                    ws.close((short) 401, "Unauthorized");
                                 } else {
                                     ws.handler(data -> {
                                         JsonObject dataJson;
                                         try {
                                             dataJson = data.toJsonObject()
-                                                    .put("fromAccid", accountList.get(0).getString("accid"));
+                                                    .put("S-from", accountList.get(0).getString("accid"));
+
                                             dataProcessingService.process(dataJson, ar -> {
                                                 if (ar.succeeded()) {
                                                     JsonObject response = new JsonObject().put("code", 200);
@@ -118,7 +123,8 @@ public class ConnectionListeningVerticle extends AbstractVerticle {
                                         }
                                     });
                                     ws.closeHandler(event -> {
-                                        // TODO 删除 accout 表中 handlerId 记录
+                                        storageService.clearWsTokenAndHandlerIdByWsToken(wsToken, nothing -> {
+                                        });
                                     });
                                 }
                             } else {
