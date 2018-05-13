@@ -1,0 +1,36 @@
+[
+  {
+    "comment": "将推送push视为一种特殊的资源，由服务端发送请求，客户端处理"
+  },
+  {
+    "comment": "1. 新增push（服务端-客户端）",
+    "header": {
+      "topic": "push.post",
+      "id": "a55f3a4e-40b9-4155-a276-a4ebe86b20d3"
+    },
+    "payload": {
+      "push": {
+        "type": "message.post",
+        "content": {
+          "channelId": "4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
+          "message": {
+            "messageId": 20,
+            "fromAccid": "xiaohong",
+            "createTime": 1525354622000,
+            "type": "TEXT",
+            "content": "世界，你好！"
+          }
+        }
+      }
+    }
+  },
+  {
+    "comment": "1. 新增push（客户端-服务端）",
+    "header": {
+      "topic": "push.post",
+      "id": "a55f3a4e-40b9-4155-a276-a4ebe86b20d3",
+      "code": 200
+    },
+    "payload": {}
+  }
+]
