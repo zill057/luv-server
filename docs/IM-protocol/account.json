@@ -1,0 +1,42 @@
+[
+  {
+    "comment": "1. 获取account（客户端-服务端）",
+    "header": {
+      "topic": "account.get.xiaoming",
+      "id": "21ee0896-7977-4859-88c6-ffbdd638f7b8"
+    },
+    "payload": {}
+  },
+  {
+    "comment": "1. 获取account（服务端-客户端）",
+    "header": {
+      "topic": "account.get.xiaoming",
+      "id": "21ee0896-7977-4859-88c6-ffbdd638f7b8",
+      "code": 200
+    },
+    "payload": {
+      "account": {
+        "name": "明明"
+      }
+    }
+  },
+  {
+    "comment": "2. 修改account（客户端-服务端）",
+    "header": {
+      "topic": "account.patch.xiaoming",
+      "id": "99b56f46-45fc-4765-a6aa-694537ba960f"
+    },
+    "payload": {
+      "name": "我不叫明明"
+    }
+  },
+  {
+    "comment": "2. 修改account（服务端-客户端）",
+    "header": {
+      "topic": "account.patch.xiaoming",
+      "id": "99b56f46-45fc-4765-a6aa-694537ba960f",
+      "code": 200
+    },
+    "payload": {}
+  }
+]

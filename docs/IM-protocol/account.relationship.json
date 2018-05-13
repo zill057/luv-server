@@ -1,0 +1,86 @@
+[
+  {
+    "comment": "1. 获取account.relationship（客户端-服务端）",
+    "header": {
+      "topic": "account.relationship.get",
+      "id": "8d79231c-cfc2-43bf-9f81-05d4a74681e4"
+    },
+    "payload": {}
+  },
+  {
+    "comment": "1. 获取account.relationship（服务端-客户端）",
+    "header": {
+      "topic": "account.relationship.get",
+      "id": "8d79231c-cfc2-43bf-9f81-05d4a74681e4",
+      "code": 200
+    },
+    "payload": {
+      "accountRelationshipList": [
+        {
+          "accid": "xiaoming",
+          "blocked": false,
+          "remarks": "小明"
+        }
+      ]
+    }
+  },
+  {
+    "comment": "2. 修改account.relationship（客户端-服务端）",
+    "header": {
+      "topic": "account.relationship.patch.xiaoming",
+      "id": "b0d51d18-43ec-40ac-885e-f0d43a1229fc"
+    },
+    "payload": {
+      "remarks": "大明"
+    }
+  },
+  {
+    "comment": "2. 修改account.relationship（服务端-客户端）",
+    "header": {
+      "topic": "account.relationship.patch.xiaoming",
+      "id": "b0d51d18-43ec-40ac-885e-f0d43a1229fc",
+      "code": 200
+    },
+    "payload": {}
+  },
+  {
+    "comment": "3. 新增account.relationship（客户端-服务端）",
+    "header": {
+      "topic": "account.relationship.post",
+      "id": "af3a4ff4-4f02-4b1a-a115-585c078b2d04"
+    },
+    "payload": {
+      "accountRelationship": {
+        "accid": "xiaojiang",
+        "blocked": false,
+        "remarks": "小江"
+      }
+    }
+  },
+  {
+    "comment": "3. 新增account.relationship（服务端-客户端）",
+    "header": {
+      "topic": "account.relationship.post",
+      "id": "af3a4ff4-4f02-4b1a-a115-585c078b2d04",
+      "code": 200
+    },
+    "payload": {}
+  },
+  {
+    "comment": "4. 删除account.relationship（客户端-服务端）",
+    "header": {
+      "topic": "channel.delete.xiaoming",
+      "id": "73bade27-84c5-47f6-a6af-13cf2c619867"
+    },
+    "payload": {}
+  },
+  {
+    "comment": "4. 删除account.relationship（服务端-客户端）",
+    "header": {
+      "topic": "channel.delete.xiaoming",
+      "id": "73bade27-84c5-47f6-a6af-13cf2c619867",
+      "code": 200
+    },
+    "payload": {}
+  }
+]
