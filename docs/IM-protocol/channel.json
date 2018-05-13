@@ -49,7 +49,7 @@
     "payload": {}
   },
   {
-    "comment": "3. 建立channel（客户端-服务端）",
+    "comment": "3. 新增channel（客户端-服务端）",
     "header": {
       "topic": "channel.post",
       "id": "615f3cd6-24b6-49af-a874-2b948ed15b22"
@@ -66,7 +66,7 @@
     }
   },
   {
-    "comment": "3. 建立channel（服务端-客户端）",
+    "comment": "3. 新增channel（服务端-客户端）",
     "header": {
       "topic": "channel.post",
       "id": "615f3cd6-24b6-49af-a874-2b948ed15b22",

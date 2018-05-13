@@ -19,13 +19,16 @@
         {
           "channelName": "小红",
           "channelId": "af23789a-07b5-4e0e-b26d-bc69cc4db699",
-          "draft": "", // TODO 扩展为 message 对象
+          "draft": {
+            "type": "TEXT",
+            "content": "世界，你好！"
+          },
           "channelRank": 2 // 数值越大，排序越高
         },
         {
           "channelName": "超级群聊",
           "channelId": "5e6e8c56-8803-4117-8539-24b29eea65c2",
-          "draft": "",
+          "draft": {},
           "channelRank": 1
         }
       ]
@@ -51,7 +54,7 @@
     "payload": {}
   },
   {
-    "comment": "3. 建立channel.sync（客户端-服务端）",
+    "comment": "3. 新增channel.sync（客户端-服务端）",
     "header": {
       "topic": "channel.sync.post",
       "id": "b10657e6-848b-4731-bb02-4f36f12f0eea"
@@ -59,13 +62,13 @@
     "payload": {
       "channelSync": {
         "channelId": "af23789a-07b5-4e0e-b26d-bc69cc4db699",
-        "draft": "",
+        "draft": {},
         "channelRank": 2
       }
     }
   },
   {
-    "comment": "3. 建立channel.sync（服务端-客户端）",
+    "comment": "3. 新增channel.sync（服务端-客户端）",
     "header": {
       "topic": "channel.sync.post",
       "id": "b10657e6-848b-4731-bb02-4f36f12f0eea",
