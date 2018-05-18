@@ -1,4 +1,4 @@
-package com.hiwangzi.luv.data;
+package com.hiwangzi.luv.processing;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.ProxyGen;
@@ -11,7 +11,8 @@ import io.vertx.core.json.JsonObject;
 public interface DataProcessingService {
 
     @Fluent
-    DataProcessingService process(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler);
+    DataProcessingService process(JsonObject serverAppendage, JsonObject header, JsonObject payload,
+                                  Handler<AsyncResult<JsonObject>> handler);
 
     static DataProcessingService create(Vertx vertx, Handler<AsyncResult<DataProcessingService>> readyHandler) {
         return new DataProcessingServiceImpl(vertx, readyHandler);

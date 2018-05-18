@@ -2,7 +2,7 @@ package com.hiwangzi.luv.run;
 
 
 import com.hiwangzi.luv.connection.ConnectionListeningVerticle;
-import com.hiwangzi.luv.data.DataProcessingVerticle;
+import com.hiwangzi.luv.processing.DataProcessingVerticle;
 import com.hiwangzi.luv.push.PushVerticle;
 import com.hiwangzi.luv.storage.StorageVerticle;
 import io.vertx.core.Future;
@@ -21,10 +21,6 @@ public class Run {
                 vertx.deployVerticle(StorageVerticle.class.getName(),
                         storageVerticleDeployment.completer())
 
-        ).compose(id -> Future.<String>future(connectionListeningVerticleDeployment ->
-                vertx.deployVerticle(ConnectionListeningVerticle.class.getName(),
-                        connectionListeningVerticleDeployment.completer()))
-
         ).compose(id -> Future.<String>future(dataProcessingVerticleDeployment ->
                 vertx.deployVerticle(DataProcessingVerticle.class.getName(),
                         dataProcessingVerticleDeployment.completer()))
@@ -32,6 +28,10 @@ public class Run {
         ).compose(id -> Future.<String>future(pushVerticleDeployment ->
                 vertx.deployVerticle(PushVerticle.class.getName(),
                         pushVerticleDeployment.completer()))
+
+        ).compose(id -> Future.<String>future(connectionListeningVerticleDeployment ->
+                vertx.deployVerticle(ConnectionListeningVerticle.class.getName(),
+                        connectionListeningVerticleDeployment.completer()))
 
         ).setHandler(ar -> {
             if (ar.succeeded()) {

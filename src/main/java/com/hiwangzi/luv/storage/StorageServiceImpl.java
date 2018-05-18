@@ -1,6 +1,5 @@
 package com.hiwangzi.luv.storage;
 
-import com.hiwangzi.luv.constant.Channel;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -12,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.UUID;
 
 
 public class StorageServiceImpl implements StorageService {
@@ -23,7 +21,7 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     public StorageService saveMessage(String fromAccid, String toChannel, JsonObject message, long createTime,
-                                      Handler<AsyncResult<Void>> resultHandler) {
+                                      Handler<AsyncResult<Void>> handler) {
 
         final String sql = "INSERT INTO message_storage" +
                 "(from_accid,to_channel,message,create_time) " +
@@ -32,66 +30,76 @@ public class StorageServiceImpl implements StorageService {
 
         asyncSQLClient.updateWithParams(sql, params, ar -> {
             if (ar.succeeded()) {
-                resultHandler.handle(Future.succeededFuture());
+                handler.handle(Future.succeededFuture());
             } else {
                 LOGGER.error("Database query error", ar.cause());
-                resultHandler.handle(Future.failedFuture(ar.cause()));
+                handler.handle(Future.failedFuture(ar.cause()));
             }
         });
         return this;
     }
+//
+//    @Override
+//    public StorageService addChannel(String fromAccid, Channel type, String name, JsonArray accids, long createTime,
+//                                     Handler<AsyncResult<String>> handler) {
+//
+//        final String sql = "INSERT INTO channel" +
+//                "(channel_id, type, name, admins, " +
+//                "creator, latest_active, accounts)" +
+//                "VALUES(?,?,?,?,?,?,?)";
+//
+//        String _channelId = UUID.randomUUID().toString();
+//        Integer _type;
+//        String _name;
+//        String _admins;
+//        String _creator = new JsonObject().put("accid", fromAccid).put("createTime", createTime).encode();
+//        Long _latestActive = System.currentTimeMillis();
+//        String _accids = accids.encode();
+//
+//        switch (type) {
+//            case PRIVATE:
+//                if (accids.size() != 2) {
+//                    handler.handle(Future.failedFuture("invalid accids"));
+//                    return this;
+//                }
+//                _type = type.getCode();
+//                _name = accids.encode();
+//                _admins = "[]";
+//                break;
+//            case GROUP:
+//                _type = type.getCode();
+//                _name = accids.encode();
+//                _admins = new JsonArray().add(_creator).encode();
+//                break;
+//            default:
+//                handler.handle(Future.failedFuture("invalid type"));
+//                return this;
+//        }
+//
+//        JsonArray params = new JsonArray()
+//                .add(_channelId).add(_type).add(_name).add(_admins)
+//                .add(_creator).add(_latestActive).add(_accids);
+//
+//        asyncSQLClient.updateWithParams(sql, params, ar -> {
+//            if (ar.succeeded()) {
+//                handler.handle(Future.succeededFuture(_channelId));
+//            } else {
+//                LOGGER.error("Database query error", ar.cause());
+//                handler.handle(Future.failedFuture(ar.cause()));
+//            }
+//        });
+//        return this;
+//
+//    }
 
     @Override
-    public StorageService initChannel(String fromAccid, Channel type, String name, JsonArray accids, long createTime,
-                                      Handler<AsyncResult<String>> resultHandler) {
-
-        final String sql = "INSERT INTO channel" +
-                "(channel_id, type, name, admins, " +
-                "creator, latest_active, accounts)" +
-                "VALUES(?,?,?,?,?,?,?)";
-
-        String _channelId = UUID.randomUUID().toString();
-        Integer _type;
-        String _name;
-        String _admins;
-        String _creator = new JsonObject().put("creator", fromAccid).put("createTime", createTime).encode();
-        Long _latestActive = System.currentTimeMillis();
-        String _accids = accids.encode();
-
-        switch (type) {
-            case PRIVATE:
-                if (accids.size() != 2) {
-                    resultHandler.handle(Future.failedFuture("invalid accids"));
-                    return this;
-                }
-                _type = 1;
-                _name = fromAccid + "_private_" + _latestActive;
-                _admins = "[]";
-                break;
-            default:
-                resultHandler.handle(Future.failedFuture("invalid type"));
-                return this;
-        }
-
-        JsonArray params = new JsonArray()
-                .add(_channelId).add(_type).add(_name).add(_admins)
-                .add(_creator).add(_latestActive).add(_accids);
-
-        asyncSQLClient.updateWithParams(sql, params, ar -> {
-            if (ar.succeeded()) {
-                resultHandler.handle(Future.succeededFuture(_channelId));
-            } else {
-                LOGGER.error("Database query error", ar.cause());
-                resultHandler.handle(Future.failedFuture(ar.cause()));
-            }
-        });
-        return this;
-
+    public StorageService listChannelSync(String fromAccid, Handler<AsyncResult<JsonArray>> handler) {
+        return null;
     }
 
     @Override
     public StorageService saveMessageSync(String fromAccid, String toChannel, JsonObject message, long messageCreateTime,
-                                          long createTime, String toAccid, Handler<AsyncResult<Void>> resultHandler) {
+                                          long createTime, String toAccid, Handler<AsyncResult<Void>> handler) {
         final String sql = "INSERT INTO message_sync" +
                 "(from_accid,to_channel,message,message_create_time,create_time,to_accid) " +
                 "VALUES(?,?,?,?,?,?)";
@@ -100,17 +108,17 @@ public class StorageServiceImpl implements StorageService {
 
         asyncSQLClient.updateWithParams(sql, params, ar -> {
             if (ar.succeeded()) {
-                resultHandler.handle(Future.succeededFuture());
+                handler.handle(Future.succeededFuture());
             } else {
                 LOGGER.error("Database query error", ar.cause());
-                resultHandler.handle(Future.failedFuture(ar.cause()));
+                handler.handle(Future.failedFuture(ar.cause()));
             }
         });
         return this;
     }
 
     @Fluent
-    public StorageService getAccountByToken(String token, Handler<AsyncResult<List<JsonObject>>> resultHandler) {
+    public StorageService getAccountByToken(String token, Handler<AsyncResult<List<JsonObject>>> handler) {
 
         final String sql = "SELECT accid, token, ws_token, text_handler_id, binary_handler_id " +
                 "FROM account WHERE token = ?";
@@ -118,27 +126,27 @@ public class StorageServiceImpl implements StorageService {
 
         asyncSQLClient.queryWithParams(sql, params, ar -> {
             if (ar.succeeded()) {
-                resultHandler.handle(Future.succeededFuture(ar.result().getRows()));
+                handler.handle(Future.succeededFuture(ar.result().getRows()));
             } else {
                 LOGGER.error("Database query error", ar.cause());
-                resultHandler.handle(Future.failedFuture(ar.cause()));
+                handler.handle(Future.failedFuture(ar.cause()));
             }
         });
         return this;
     }
 
     @Override
-    public StorageService updateWsTokenByToken(String token, String wsToken, Handler<AsyncResult<Void>> resultHandler) {
+    public StorageService updateWsTokenByToken(String token, String wsToken, Handler<AsyncResult<Void>> handler) {
 
         final String sql = "UPDATE account SET ws_token = ? WHERE token = ?";
         JsonArray params = new JsonArray().add(wsToken).add(token);
 
         asyncSQLClient.updateWithParams(sql, params, ar -> {
             if (ar.succeeded()) {
-                resultHandler.handle(Future.succeededFuture());
+                handler.handle(Future.succeededFuture());
             } else {
                 LOGGER.error("Database query error", ar.cause());
-                resultHandler.handle(Future.failedFuture(ar.cause()));
+                handler.handle(Future.failedFuture(ar.cause()));
             }
         });
         return this;
@@ -146,7 +154,7 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     public StorageService updateWsHandlerIdByWsTokenRetuningAccount(String wsToken, String textHandlerId, String binaryHandlerId,
-                                                                    Handler<AsyncResult<List<JsonObject>>> resultHandler) {
+                                                                    Handler<AsyncResult<List<JsonObject>>> handler) {
 
         final String sql = "UPDATE account SET " +
                 "text_handler_id = ? ," +
@@ -157,17 +165,17 @@ public class StorageServiceImpl implements StorageService {
 
         asyncSQLClient.queryWithParams(sql, params, ar -> {
             if (ar.succeeded()) {
-                resultHandler.handle(Future.succeededFuture(ar.result().getRows()));
+                handler.handle(Future.succeededFuture(ar.result().getRows()));
             } else {
                 LOGGER.error("Database query error", ar.cause());
-                resultHandler.handle(Future.failedFuture(ar.cause()));
+                handler.handle(Future.failedFuture(ar.cause()));
             }
         });
         return this;
     }
 
     @Override
-    public StorageService clearWsTokenAndHandlerIdByWsToken(String wsToken, Handler<AsyncResult<Void>> resultHandler) {
+    public StorageService clearWsTokenAndHandlerIdByWsToken(String wsToken, Handler<AsyncResult<Void>> handler) {
 
         final String sql = "UPDATE account SET ws_token = NULL, " +
                 "text_handler_id = NULL, " +
@@ -177,17 +185,17 @@ public class StorageServiceImpl implements StorageService {
 
         asyncSQLClient.updateWithParams(sql, params, ar -> {
             if (ar.succeeded()) {
-                resultHandler.handle(Future.succeededFuture());
+                handler.handle(Future.succeededFuture());
             } else {
                 LOGGER.error("Database query error", ar.cause());
-                resultHandler.handle(Future.failedFuture(ar.cause()));
+                handler.handle(Future.failedFuture(ar.cause()));
             }
         });
         return this;
     }
 
     @Override
-    public StorageService getAccidAndHandlerIdListByChannelId(String channelId, Handler<AsyncResult<List<JsonObject>>> resultHandler) {
+    public StorageService getAccidAndHandlerIdListByChannelId(String channelId, Handler<AsyncResult<List<JsonObject>>> handler) {
         final String sql = "SELECT " +
                 "  accid_t.accid, " +
                 "  name, " +
@@ -203,10 +211,10 @@ public class StorageServiceImpl implements StorageService {
 
         asyncSQLClient.queryWithParams(sql, params, ar -> {
             if (ar.succeeded()) {
-                resultHandler.handle(Future.succeededFuture(ar.result().getRows()));
+                handler.handle(Future.succeededFuture(ar.result().getRows()));
             } else {
                 LOGGER.error("Database query error", ar.cause());
-                resultHandler.handle(Future.failedFuture(ar.cause()));
+                handler.handle(Future.failedFuture(ar.cause()));
             }
         });
         return this;

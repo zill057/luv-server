@@ -1,7 +1,7 @@
 package com.hiwangzi.luv.connection;
 
-import com.hiwangzi.luv.data.DataProcessingService;
-import com.hiwangzi.luv.data.DataProcessingVerticle;
+import com.hiwangzi.luv.processing.DataProcessingService;
+import com.hiwangzi.luv.processing.DataProcessingVerticle;
 import com.hiwangzi.luv.storage.StorageService;
 import com.hiwangzi.luv.storage.StorageVerticle;
 import io.netty.util.internal.StringUtil;
@@ -17,13 +17,16 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * 用于管理连接请求（HTTP、WebSocket），并给予响应
+ */
 public class ConnectionListeningVerticle extends AbstractVerticle {
 
     private StorageService storageService;
     private DataProcessingService dataProcessingService;
 
     @Override
-    public void start(Future<Void> startFuture) throws Exception {
+    public void start(Future<Void> startFuture) {
 
         storageService = StorageService.createProxy(vertx, StorageVerticle.CONFIG_DB_QUEUE);
         dataProcessingService = DataProcessingService.createProxy(vertx, DataProcessingVerticle.CONFIG_DATA_PROCESSING_QUEUE);
@@ -31,6 +34,7 @@ public class ConnectionListeningVerticle extends AbstractVerticle {
         Handler<HttpServerRequest> httpRequestHandler = httpRequest -> {
             Router router = Router.router(vertx);
             router.route().handler(routingContext -> {
+                // TODO 后续可以考虑使用 JWT
                 String token = routingContext.request().getHeader("token");
                 if (StringUtil.isNullOrEmpty(token)) {
                     routingContext.fail(401);
@@ -58,7 +62,7 @@ public class ConnectionListeningVerticle extends AbstractVerticle {
 
             // HTTP GET /websocket
             // Header token
-            // Response JSON {"WebSocket":"ws://127.0.0.1/?086729a9-8bc3-44a7-8aef-df23d753b1d5"}
+            // Response JSON {"webSocket":"ws://127.0.0.1/?086729a9-8bc3-44a7-8aef-df23d753b1d5"}
             router.get("/websocket").handler(routingContext -> {
                 String wsToken = UUID.randomUUID().toString();
                 storageService.updateWsTokenByToken(
@@ -66,7 +70,7 @@ public class ConnectionListeningVerticle extends AbstractVerticle {
                         wsToken,
                         ar -> {
                             if (ar.succeeded()) {
-                                JsonObject response = new JsonObject().put("WebSocket", "ws://127.0.0.1/?" + wsToken);
+                                JsonObject response = new JsonObject().put("webSocket", "ws://127.0.0.1/?" + wsToken);
                                 routingContext.request().response()
                                         .putHeader("Content-Type", "application/json;charset=utf-8")
                                         .end(response.encode());
@@ -90,46 +94,57 @@ public class ConnectionListeningVerticle extends AbstractVerticle {
                 storageService.updateWsHandlerIdByWsTokenRetuningAccount(
                         wsToken, textHandlerID, binaryHandlerID,
                         accountsRes -> {
-                            if (accountsRes.succeeded()) {
-                                // 目前 ws_token 同样存储在数据库，因此可能会查询出多个 account
-                                // TODO 但 1.0 版本暂时不考虑多终端同步问题
-                                List<JsonObject> accountList = accountsRes.result();
-                                if (accountList.size() == 0) {
-                                    ws.close((short) 401, "Unauthorized");
-                                } else {
-                                    ws.handler(data -> {
-                                        JsonObject dataJson;
-                                        try {
-                                            dataJson = data.toJsonObject()
-                                                    .put("S-from", accountList.get(0).getString("accid"));
 
-                                            dataProcessingService.process(dataJson, ar -> {
-                                                if (ar.succeeded()) {
-                                                    JsonObject response = new JsonObject().put("code", 200);
-                                                    if (ar.result() != null) {
-                                                        response.put("data", ar.result());
-                                                    }
-                                                    vertx.eventBus().send(textHandlerID, response.encode());
-                                                } else {
-                                                    vertx.eventBus().send(textHandlerID, new JsonObject()
-                                                            .put("code", 500).put("message", ar.cause().getMessage()).encode()
-                                                    );
-                                                }
-                                            });
-                                        } catch (Exception e) {
-                                            vertx.eventBus().send(textHandlerID, new JsonObject()
-                                                    .put("code", 400).put("message", e.getMessage())
-                                            );
+                            // 根据 ws_token 更新 handler_id 失败，服务端错误
+                            if (accountsRes.failed()) {
+                                ws.reject(500);
+                                return;
+                            }
+
+                            // TODO 1.0 版本暂时不考虑多终端同步问题
+                            // 不存在对应的 ws_token
+                            List<JsonObject> accountList = accountsRes.result();
+                            if (accountList.size() == 0) {
+                                ws.close((short) 401, "Unauthorized");
+                                return;
+                            }
+
+                            ws.handler(data -> {
+                                JsonObject dataJson;
+                                try {
+                                    // TODO 使用 JSON-Schema 检测格式
+                                    dataJson = data.toJsonObject();
+
+                                    // 后续处理统一参数形式（服务端额外追加数据，请求header，请求payload）
+                                    // 回调结果即为响应payload
+                                    JsonObject serverAppendage = new JsonObject()
+                                            .put("S-from", accountList.get(0).getString("accid"));
+                                    JsonObject requestHeader = dataJson.getJsonObject("header");
+                                    JsonObject requestPayload = dataJson.getJsonObject("payload");
+
+                                    dataProcessingService.process(serverAppendage, requestHeader, requestPayload, ar -> {
+                                        if (ar.succeeded()) {
+                                            JsonObject response = new JsonObject()
+                                                    .put("header", requestHeader.put("code", 200))
+                                                    .put("payload", ar.result());
+                                            vertx.eventBus().send(textHandlerID, response.encode());
+                                        } else {
+                                            JsonObject responsePayload = new JsonObject().put("cause", ar.cause().getMessage());
+                                            JsonObject response = new JsonObject()
+                                                    .put("header", requestHeader.put("code", 500))
+                                                    .put("payload", responsePayload);
+                                            vertx.eventBus().send(textHandlerID, response.encode());
                                         }
                                     });
-                                    ws.closeHandler(event -> {
-                                        storageService.clearWsTokenAndHandlerIdByWsToken(wsToken, nothing -> {
-                                        });
-                                    });
+                                } catch (Exception e) {
+                                    // TODO 此处应当统一response格式
+                                    vertx.eventBus().send(textHandlerID, e.getMessage());
                                 }
-                            } else {
-                                ws.reject(500);
-                            }
+                            });
+                            ws.closeHandler(event -> {
+                                storageService.clearWsTokenAndHandlerIdByWsToken(wsToken, nothing -> {
+                                });
+                            });
                         }
                 );
             }

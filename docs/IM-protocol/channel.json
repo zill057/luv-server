@@ -2,21 +2,23 @@
   {
     "comment": "1. 获取channel（客户端-服务端）",
     "header": {
-      "topic": "channel.get.4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
+      "topic": "channel.get",
       "id": "10438a23-10ad-4561-b5da-255568cb5741"
     },
-    "payload": {}
+    "payload": {
+      "channelId": "4d2db3e6-b477-450b-ba3a-6ed30c1319d6"
+    }
   },
   {
     "comment": "1. 获取channel（服务端-客户端）",
     "header": {
-      "topic": "channel.get.4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
+      "topic": "channel.get",
       "id": "10438a23-10ad-4561-b5da-255568cb5741",
       "code": 200
     },
     "payload": {
       "channel": {
-        "type": "GROUP",
+        "channelType": 1,
         "channelId": "4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
         "channelName": "whatever",
         "admins": [
@@ -32,17 +34,20 @@
   {
     "comment": "2. 修改channel（客户端-服务端）",
     "header": {
-      "topic": "channel.patch.4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
+      "topic": "channel.patch",
       "id": "5b88f7bc-c42f-4c48-9ddf-019cc985cc41"
     },
     "payload": {
-      "channelName": "new"
+      "channelId": "4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
+      "patch": {
+        "channelName": "new"
+      }
     }
   },
   {
     "comment": "2. 修改channel（服务端-客户端）",
     "header": {
-      "topic": "channel.patch.4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
+      "topic": "channel.patch",
       "id": "5b88f7bc-c42f-4c48-9ddf-019cc985cc41",
       "code": 200
     },
@@ -56,7 +61,7 @@
     },
     "payload": {
       "channel": {
-        "type": "GROUP",
+        "channelType": 2,
         "channelName": "whatever-again",
         "accids": [
           "xiaohong",
@@ -79,15 +84,17 @@
   {
     "comment": "4. 删除channel（客户端-服务端）",
     "header": {
-      "topic": "channel.delete.4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
+      "topic": "channel.delete",
       "id": "e43186ab-8adc-4d6e-b96f-4559b241fdb7"
     },
-    "payload": {}
+    "payload": {
+      "channelId": "4d2db3e6-b477-450b-ba3a-6ed30c1319d6"
+    }
   },
   {
     "comment": "4. 删除channel（服务端-客户端）",
     "header": {
-      "topic": "channel.delete.4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
+      "topic": "channel.delete",
       "id": "e43186ab-8adc-4d6e-b96f-4559b241fdb7",
       "code": 200
     },

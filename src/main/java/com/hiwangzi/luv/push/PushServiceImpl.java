@@ -1,6 +1,5 @@
 package com.hiwangzi.luv.push;
 
-import com.hiwangzi.luv.constant.Header;
 import com.hiwangzi.luv.storage.StorageService;
 import com.hiwangzi.luv.storage.StorageVerticle;
 import io.vertx.core.AsyncResult;
@@ -18,6 +17,7 @@ public class PushServiceImpl implements PushService {
     private Vertx vertx;
     private StorageService storageService;
 
+    // TODO 需要重构
     @Override
     public PushService push(String fromAccid, String toChannel, JsonObject message, long messageCreateTime,
                             Handler<AsyncResult<Void>> resultHandler) {
@@ -33,8 +33,8 @@ public class PushServiceImpl implements PushService {
                         // 直接推送
                         JsonObject pushContent = new JsonObject()
                                 .put("header", new JsonObject()
-                                        .put(Header.TOPIC, Header.CHAT_PUSH)
-                                        .put(Header.CREATE_TIME, System.currentTimeMillis()))
+                                        .put("topic", "chat.push")
+                                        .put("createTime", System.currentTimeMillis()))
                                 .put("payload", new JsonObject()
                                         .put("message", message));
                         vertx.eventBus().send(address, pushContent.encode());

@@ -1,0 +1,28 @@
+package com.hiwangzi.luv.storage.channel;
+
+import io.vertx.codegen.annotations.ProxyGen;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.asyncsql.AsyncSQLClient;
+
+@ProxyGen
+public interface ChannelStorageService {
+
+    static ChannelStorageService create(AsyncSQLClient asyncSQLClient, Handler<AsyncResult<ChannelStorageService>> readyHandler) {
+        return new ChannelStorageServiceImpl(asyncSQLClient, readyHandler);
+    }
+
+    static ChannelStorageService createProxy(Vertx vertx, String address) {
+        return new ChannelStorageServiceVertxEBProxy(vertx, address);
+    }
+
+    void retrieveChannel(String channelId, Handler<AsyncResult<JsonObject>> handler);
+
+    void updateChannel(String channelId, JsonObject change, Handler<AsyncResult<Boolean>> handler);
+
+    void createChannel(JsonObject channel, Handler<AsyncResult<Boolean>> handler);
+
+    void deleteChannel(String executor, String channelId, Handler<AsyncResult<Boolean>> handler);
+}
