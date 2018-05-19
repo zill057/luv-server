@@ -2,17 +2,18 @@
   {
     "comment": "1. 获取message（客户端-服务端）",
     "header": {
-      "topic": "message.get.4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
+      "topic": "message.get",
       "id": "ba1c1239-5a91-40d1-90f7-25a02e06d391"
     },
     "payload": {
+      "channelId": "4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
       "after": 0 // 消息id（逐渐增长，但步长不定），其他可选项：before
     }
   },
   {
     "comment": "1. 获取message（服务端-客户端）",
     "header": {
-      "topic": "message.get.4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
+      "topic": "message.get",
       "id": "ba1c1239-5a91-40d1-90f7-25a02e06d391",
       "code": 200
     },
@@ -22,15 +23,19 @@
           "messageId": 20,
           "fromAccid": "xiaohong",
           "createTime": 1525354622000,
-          "type": "TEXT",
-          "content": "世界，你好！"
+          "messageBody": {
+            "type": 1,
+            "content": "世界，你好！"
+          }
         },
         {
           "messageId": 32,
           "fromAccid": "xiaoming",
           "createTime": 1525354623000,
-          "type": "TEXT",
-          "content": "Hello, world！"
+          "messageBody": {
+            "type": 1,
+            "content": "Hello, world！"
+          }
         }
       ]
     }
@@ -38,17 +43,22 @@
   {
     "comment": "2. 修改message（客户端-服务端）",
     "header": {
-      "topic": "message.patch.4d2db3e6-b477-450b-ba3a-6ed30c1319d6.20",
+      "topic": "message.put",
       "id": "16a34815-440b-43db-bb21-585431042c04"
     },
     "payload": {
-      "content": "I am learning Chinese."
+      "channelId": "4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
+      "messageId": 20,
+      "messageBody": {
+        "type": 1,
+        "content": "Hello, world！"
+      }
     }
   },
   {
     "comment": "2. 修改message（服务端-客户端）",
     "header": {
-      "topic": "message.patch.4d2db3e6-b477-450b-ba3a-6ed30c1319d6.20",
+      "topic": "message.put",
       "id": "16a34815-440b-43db-bb21-585431042c04",
       "code": 200
     },
@@ -57,10 +67,11 @@
   {
     "comment": "3. 新增message（客户端-服务端）",
     "header": {
-      "topic": "message.post.4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
+      "topic": "message.post",
       "id": "bea163c1-f577-47fd-b847-a253013c0369"
     },
     "payload": {
+      "channelId": "4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
       "message": {
         "type": "TEXT",
         "content": "Vert.x is cool!"
@@ -70,7 +81,7 @@
   {
     "comment": "3. 新增message（服务端-客户端）",
     "header": {
-      "topic": "message.post.4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
+      "topic": "message.post",
       "id": "bea163c1-f577-47fd-b847-a253013c0369",
       "code": 200
     },
@@ -82,15 +93,18 @@
   {
     "comment": "4. 删除message（客户端-服务端）",
     "header": {
-      "topic": "message.delete.4d2db3e6-b477-450b-ba3a-6ed30c1319d6.20",
+      "topic": "message.delete",
       "id": "65da9a8f-9bf7-4d61-b7ed-cc4047145d70"
     },
-    "payload": {}
+    "payload": {
+      "channelId": "4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
+      "messageId": 20
+    }
   },
   {
     "comment": "4. 删除message（服务端-客户端）",
     "header": {
-      "topic": "message.delete.4d2db3e6-b477-450b-ba3a-6ed30c1319d6.20",
+      "topic": "message.delete",
       "id": "65da9a8f-9bf7-4d61-b7ed-cc4047145d70",
       "code": 200
     },

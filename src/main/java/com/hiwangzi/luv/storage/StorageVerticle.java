@@ -1,6 +1,7 @@
 package com.hiwangzi.luv.storage;
 
 import com.hiwangzi.luv.storage.channel.ChannelStorageService;
+import com.hiwangzi.luv.storage.message.MessageStorageService;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -18,6 +19,7 @@ public class StorageVerticle extends AbstractVerticle {
     public static final String CONFIG_DB_MAX_POOL_SIZE = "db.luv.max_pool_size";
     public static final String CONFIG_DB_QUEUE = "message.db.queue";
     public static final String STORAGE_CHANNEL = "storage.channel";
+    public static final String STORAGE_MESSAGE = "storage.message";
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
@@ -51,6 +53,18 @@ public class StorageVerticle extends AbstractVerticle {
                         createChannelDao.complete();
                     } else {
                         createChannelDao.fail(ar.cause());
+                    }
+                }))
+
+        ).compose(nothing -> Future.<Void>future(createMessageDao ->
+                MessageStorageService.create(asyncSQLClient, ar -> {
+                    if (ar.succeeded()) {
+                        new ServiceBinder(vertx)
+                                .setAddress(STORAGE_MESSAGE)
+                                .register(MessageStorageService.class, ar.result());
+                        createMessageDao.complete();
+                    } else {
+                        createMessageDao.fail(ar.cause());
                     }
                 }))
 

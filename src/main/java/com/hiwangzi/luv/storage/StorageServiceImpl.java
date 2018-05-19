@@ -12,14 +12,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-
 public class StorageServiceImpl implements StorageService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StorageServiceImpl.class);
     private final AsyncSQLClient asyncSQLClient;
 
 
-    @Override
     public StorageService saveMessage(String fromAccid, String toChannel, JsonObject message, long createTime,
                                       Handler<AsyncResult<Void>> handler) {
 
@@ -38,64 +36,7 @@ public class StorageServiceImpl implements StorageService {
         });
         return this;
     }
-//
-//    @Override
-//    public StorageService addChannel(String fromAccid, Channel type, String name, JsonArray accids, long createTime,
-//                                     Handler<AsyncResult<String>> handler) {
-//
-//        final String sql = "INSERT INTO channel" +
-//                "(channel_id, type, name, admins, " +
-//                "creator, latest_active, accounts)" +
-//                "VALUES(?,?,?,?,?,?,?)";
-//
-//        String _channelId = UUID.randomUUID().toString();
-//        Integer _type;
-//        String _name;
-//        String _admins;
-//        String _creator = new JsonObject().put("accid", fromAccid).put("createTime", createTime).encode();
-//        Long _latestActive = System.currentTimeMillis();
-//        String _accids = accids.encode();
-//
-//        switch (type) {
-//            case PRIVATE:
-//                if (accids.size() != 2) {
-//                    handler.handle(Future.failedFuture("invalid accids"));
-//                    return this;
-//                }
-//                _type = type.getCode();
-//                _name = accids.encode();
-//                _admins = "[]";
-//                break;
-//            case GROUP:
-//                _type = type.getCode();
-//                _name = accids.encode();
-//                _admins = new JsonArray().add(_creator).encode();
-//                break;
-//            default:
-//                handler.handle(Future.failedFuture("invalid type"));
-//                return this;
-//        }
-//
-//        JsonArray params = new JsonArray()
-//                .add(_channelId).add(_type).add(_name).add(_admins)
-//                .add(_creator).add(_latestActive).add(_accids);
-//
-//        asyncSQLClient.updateWithParams(sql, params, ar -> {
-//            if (ar.succeeded()) {
-//                handler.handle(Future.succeededFuture(_channelId));
-//            } else {
-//                LOGGER.error("Database query error", ar.cause());
-//                handler.handle(Future.failedFuture(ar.cause()));
-//            }
-//        });
-//        return this;
-//
-//    }
 
-    @Override
-    public StorageService listChannelSync(String fromAccid, Handler<AsyncResult<JsonArray>> handler) {
-        return null;
-    }
 
     @Override
     public StorageService saveMessageSync(String fromAccid, String toChannel, JsonObject message, long messageCreateTime,

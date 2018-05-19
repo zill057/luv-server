@@ -64,4 +64,18 @@ public class BaseDao {
         });
     }
 
+    public static void queryWithParamsHandleJsonArray(AsyncSQLClient asyncSQLClient,
+                                                      String sql, JsonArray params,
+                                                      Handler<AsyncResult<JsonArray>> handler) {
+        queryWithParamsHandleList(asyncSQLClient, sql, params, ar -> {
+            if (ar.succeeded()) {
+                handler.handle(Future.succeededFuture(new JsonArray(ar.result())));
+            } else {
+                handler.handle(Future.failedFuture("SQL query failed."));
+                LOGGER.error("sql = {}, params = {}, cause = {}",
+                        sql, params.toString(), ar.cause());
+            }
+        });
+    }
+
 }

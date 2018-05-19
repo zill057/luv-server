@@ -1,0 +1,59 @@
+[
+  {
+    "comment": "1. 获取channel-message-sync（客户端-服务端）",
+    "header": {
+      "topic": "channel-message-sync.get",
+      "id": "ba1c1239-5a91-40d1-90f7-25a02e06d391"
+    },
+    "payload": {
+      "after": 0 // 消息id（逐渐增长，但步长不定），其他可选项：before
+    }
+  },
+  {
+    "comment": "1. 获取channel-message-sync（服务端-客户端）",
+    "header": {
+      "topic": "channel-message-sync.get",
+      "id": "ba1c1239-5a91-40d1-90f7-25a02e06d391",
+      "code": 200
+    },
+    "payload": {
+      "messageList": [
+        {
+          "messageId": 20,
+          "fromAccid": "xiaohong",
+          "toChannel": "ac2b1219-5a91-40d1-90f7-25a02e012398",
+          "createTime": 1525354622000,
+          "type": "TEXT",
+          "content": "世界，你好！"
+        },
+        {
+          "messageId": 32,
+          "fromAccid": "xiaoming",
+          "toChannel": "f9540793-addd-434d-b61a-020d58134c24",
+          "createTime": 1525354623000,
+          "type": "TEXT",
+          "content": "Hello, world！"
+        }
+      ]
+    }
+  },
+  {
+    "comment": "2. 删除channel-message-sync（客户端-服务端）",
+    "header": {
+      "topic": "channel-message-sync.delete",
+      "id": "65da9a8f-9bf7-4d61-b7ed-cc4047145d70"
+    },
+    "payload": {
+      "channelId": "4d2db3e6-b477-450b-ba3a-6ed30c1319d6"
+    }
+  },
+  {
+    "comment": "2. 删除channel-message-sync（服务端-客户端）",
+    "header": {
+      "topic": "channel-message-sync.delete",
+      "id": "65da9a8f-9bf7-4d61-b7ed-cc4047145d70",
+      "code": 200
+    },
+    "payload": {}
+  }
+]

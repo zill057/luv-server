@@ -73,9 +73,9 @@ public class ChannelStorageServiceImpl implements ChannelStorageService {
     }
 
     @Override
-    public void deleteChannel(String executor, String channelId, Handler<AsyncResult<Boolean>> handler) {
+    public void deleteChannel(String channelId, Handler<AsyncResult<Boolean>> handler) {
 
-        final String sql = "UPDATE channel SET is_del = 1 WHERE channel_id = ? AND admins ->> ? IS NOT NULL";
-        BaseDao.updateWithParamsHandleAffecting1Row(asyncSQLClient, sql, new JsonArray().add(channelId).add(executor), handler);
+        final String sql = "UPDATE channel SET is_del = 1 WHERE channel_id = ? ";
+        BaseDao.updateWithParamsHandleAffecting1Row(asyncSQLClient, sql, new JsonArray().add(channelId), handler);
     }
 }

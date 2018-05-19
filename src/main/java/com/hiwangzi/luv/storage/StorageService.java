@@ -5,7 +5,6 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.AsyncSQLClient;
 
@@ -13,21 +12,6 @@ import java.util.List;
 
 @ProxyGen
 public interface StorageService {
-
-    /* channel */
-
-//    StorageService retrieveChannel
-
-    @Fluent
-    StorageService saveMessage(String fromAccid, String toChannel, JsonObject message, long createTime,
-                               Handler<AsyncResult<Void>> handler);
-
-//    @Fluent
-//    StorageService addChannel(String fromAccid, Channel type, String name, JsonArray accids, long createTime,
-//                              Handler<AsyncResult<String>> handler);
-
-    @Fluent
-    StorageService listChannelSync(String fromAccid, Handler<AsyncResult<JsonArray>> handler);
 
     @Fluent
     StorageService saveMessageSync(String fromAccid, String toChannel, JsonObject message, long messageCreateTime,

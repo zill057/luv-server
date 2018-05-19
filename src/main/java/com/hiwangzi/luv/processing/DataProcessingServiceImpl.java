@@ -3,6 +3,7 @@ package com.hiwangzi.luv.processing;
 import com.hiwangzi.luv.constant.Topic;
 import com.hiwangzi.luv.storage.StorageVerticle;
 import com.hiwangzi.luv.storage.channel.ChannelStorageService;
+import com.hiwangzi.luv.storage.message.MessageStorageService;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 public class DataProcessingServiceImpl implements DataProcessingService {
 
     private ChannelStorageService channelStorageService;
+    private MessageStorageService messageStorageService;
 
     @Override
     public DataProcessingService process(JsonObject serverAppendage, JsonObject header, JsonObject payload,
@@ -35,6 +37,23 @@ public class DataProcessingServiceImpl implements DataProcessingService {
                 break;
             case Topic.CHANNEL_DELETE:
                 deleteChannel(fromAccid, payload.getString("channelId"), handler);
+                break;
+            case Topic.MESSAGE_GET:
+                getMessage(fromAccid, payload.getString("channelId"),
+                        payload.getInteger("after", payload.getInteger("before")),
+                        payload.getInteger("after") != null, handler);
+                break;
+            case Topic.MESSAGE_PUT:
+                putMessage(fromAccid, payload.getString("channelId"),
+                        payload.getLong("messageId"), payload.getJsonObject("messageBody"), handler);
+                break;
+            case Topic.MESSAGE_POST:
+                postMessage(fromAccid, payload.getString("channelId"),
+                        payload.getJsonObject("messageBody"), handler);
+                break;
+            case Topic.MESSAGE_DELETE:
+                deleteMessage(fromAccid, payload.getString("channelId"),
+                        payload.getLong("messageId"), handler);
                 break;
             default:
                 handler.handle(Future.failedFuture("Invalid topic in header."));
@@ -131,7 +150,8 @@ public class DataProcessingServiceImpl implements DataProcessingService {
 
     private void deleteChannel(String fromAccid, String channelId, Handler<AsyncResult<JsonObject>> handler) {
 
-        channelStorageService.deleteChannel(fromAccid, channelId, ar -> {
+        // TODO need authentication
+        channelStorageService.deleteChannel(channelId, ar -> {
             if (ar.succeeded()) {
                 if (ar.result()) {
                     handler.handle(Future.succeededFuture(new JsonObject()));
@@ -144,9 +164,76 @@ public class DataProcessingServiceImpl implements DataProcessingService {
         });
     }
 
+    private void getMessage(String fromAccid, String channelId, long messageId, boolean after,
+                            Handler<AsyncResult<JsonObject>> handler) {
+
+        messageStorageService.retrieveMessageList(channelId, messageId, after, 10, ar -> {
+            if (ar.succeeded()) {
+                JsonArray result = new JsonArray();
+                for (Object origin : ar.result()) {
+                    JsonObject resultElement = new JsonObject();
+                    result.add(resultElement);
+                    resultElement.put("messageId", ((JsonObject) origin).getLong("message_id"));
+                    resultElement.put("fromAccid", ((JsonObject) origin).getString("from_accid"));
+                    resultElement.put("createTime", ((JsonObject) origin).getLong("create_time"));
+                    resultElement.put("messageBody", new JsonObject(((JsonObject) origin).getString("message_body")));
+                }
+                handler.handle(Future.succeededFuture(new JsonObject().put("messageList", result)));
+            } else {
+                handler.handle(Future.failedFuture(ar.cause()));
+            }
+        });
+    }
+
+    private void putMessage(String fromAccid, String channelId, long messageId, JsonObject messageBody,
+                            Handler<AsyncResult<JsonObject>> handler) {
+        messageStorageService.updateMessage(messageId, messageBody, ar -> {
+            if (ar.succeeded()) {
+                if (ar.result()) {
+                    handler.handle(Future.succeededFuture(new JsonObject()));
+                } else {
+                    handler.handle(Future.failedFuture("Failed to execute update."));
+                }
+            } else {
+                handler.handle(Future.failedFuture(ar.cause()));
+            }
+        });
+    }
+
+    private void postMessage(String fromAccid, String channelId, JsonObject messageBody, Handler<AsyncResult<JsonObject>> handler) {
+        long postTime = System.currentTimeMillis();
+        messageStorageService.createMessage(fromAccid, channelId, postTime, messageBody, ar -> {
+            if (ar.succeeded()) {
+                if (ar.result() != null) {
+                    handler.handle(Future.succeededFuture(new JsonObject().put("messageId", ar.result()).put("createTime", postTime)));
+                } else {
+                    handler.handle(Future.failedFuture("Failed to execute update."));
+                }
+            } else {
+                handler.handle(Future.failedFuture(ar.cause()));
+            }
+        });
+    }
+
+    private void deleteMessage(String fromAccid, String channelId, long messageId, Handler<AsyncResult<JsonObject>> handler) {
+
+        // TODO need authentication
+        messageStorageService.deleteMessage(messageId, ar -> {
+            if (ar.succeeded()) {
+                if (ar.result()) {
+                    handler.handle(Future.succeededFuture(new JsonObject()));
+                } else {
+                    handler.handle(Future.failedFuture("Failed to execute update."));
+                }
+            } else {
+                handler.handle(Future.failedFuture(ar.cause()));
+            }
+        });
+    }
 
     DataProcessingServiceImpl(Vertx vertx, Handler<AsyncResult<DataProcessingService>> readyHandler) {
         this.channelStorageService = ChannelStorageService.createProxy(vertx, StorageVerticle.STORAGE_CHANNEL);
+        this.messageStorageService = MessageStorageService.createProxy(vertx, StorageVerticle.STORAGE_MESSAGE);
         readyHandler.handle(Future.succeededFuture(this));
     }
 }

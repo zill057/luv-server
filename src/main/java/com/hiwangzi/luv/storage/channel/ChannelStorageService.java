@@ -10,8 +10,8 @@ import io.vertx.ext.asyncsql.AsyncSQLClient;
 @ProxyGen
 public interface ChannelStorageService {
 
-    static ChannelStorageService create(AsyncSQLClient asyncSQLClient, Handler<AsyncResult<ChannelStorageService>> readyHandler) {
-        return new ChannelStorageServiceImpl(asyncSQLClient, readyHandler);
+    static ChannelStorageService create(AsyncSQLClient asyncSQLClient, Handler<AsyncResult<ChannelStorageService>> handler) {
+        return new ChannelStorageServiceImpl(asyncSQLClient, handler);
     }
 
     static ChannelStorageService createProxy(Vertx vertx, String address) {
@@ -24,5 +24,5 @@ public interface ChannelStorageService {
 
     void createChannel(JsonObject channel, Handler<AsyncResult<Boolean>> handler);
 
-    void deleteChannel(String executor, String channelId, Handler<AsyncResult<Boolean>> handler);
+    void deleteChannel(String channelId, Handler<AsyncResult<Boolean>> handler);
 }
