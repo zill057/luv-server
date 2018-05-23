@@ -1,6 +1,7 @@
 package com.hiwangzi.luv.storage;
 
 import com.hiwangzi.luv.storage.channel.ChannelStorageService;
+import com.hiwangzi.luv.storage.cmsync.ChannelMessageSyncStorageService;
 import com.hiwangzi.luv.storage.message.MessageStorageService;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -20,6 +21,7 @@ public class StorageVerticle extends AbstractVerticle {
     public static final String CONFIG_DB_QUEUE = "message.db.queue";
     public static final String STORAGE_CHANNEL = "storage.channel";
     public static final String STORAGE_MESSAGE = "storage.message";
+    public static final String STORAGE_CMS = "storage.channel-message-sync";
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
@@ -65,6 +67,18 @@ public class StorageVerticle extends AbstractVerticle {
                         createMessageDao.complete();
                     } else {
                         createMessageDao.fail(ar.cause());
+                    }
+                }))
+
+        ).compose(nothing -> Future.<Void>future(createCMSDao ->
+                ChannelMessageSyncStorageService.create(asyncSQLClient, ar -> {
+                    if (ar.succeeded()) {
+                        new ServiceBinder(vertx)
+                                .setAddress(STORAGE_CMS)
+                                .register(ChannelMessageSyncStorageService.class, ar.result());
+                        createCMSDao.complete();
+                    } else {
+                        createCMSDao.fail(ar.cause());
                     }
                 }))
 

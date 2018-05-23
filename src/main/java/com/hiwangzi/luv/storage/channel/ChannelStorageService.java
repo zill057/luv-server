@@ -18,6 +18,8 @@ public interface ChannelStorageService {
         return new ChannelStorageServiceVertxEBProxy(vertx, address);
     }
 
+    void retrieveChannelByChannel(JsonObject channel, Handler<AsyncResult<JsonObject>> handler);
+
     void retrieveChannel(String channelId, Handler<AsyncResult<JsonObject>> handler);
 
     void updateChannel(String channelId, JsonObject change, Handler<AsyncResult<Boolean>> handler);

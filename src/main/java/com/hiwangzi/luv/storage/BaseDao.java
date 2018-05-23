@@ -38,9 +38,7 @@ public class BaseDao {
                 if (resultSet.size() == 1) {
                     handler.handle(Future.succeededFuture(resultSet.get(0)));
                 } else {
-                    handler.handle(Future.failedFuture("Error count of result set."));
-                    LOGGER.error("sql = {}, params = {}, result set = {}",
-                            sql, params.toString(), resultSet);
+                    handler.handle(Future.succeededFuture(null));
                 }
             } else {
                 handler.handle(Future.failedFuture("SQL query failed."));

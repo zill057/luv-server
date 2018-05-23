@@ -72,8 +72,8 @@
     },
     "payload": {
       "channelId": "4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
-      "message": {
-        "type": "TEXT",
+      "messageBody": {
+        "type": 1,
         "content": "Vert.x is cool!"
       }
     }

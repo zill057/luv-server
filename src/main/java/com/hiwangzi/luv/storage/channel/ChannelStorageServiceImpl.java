@@ -18,6 +18,26 @@ public class ChannelStorageServiceImpl implements ChannelStorageService {
     }
 
     @Override
+    public void retrieveChannelByChannel(JsonObject channel, Handler<AsyncResult<JsonObject>> handler) {
+
+        int channelType = channel.getInteger("channel_type");
+        JsonArray accids = channel.getJsonArray("accids");
+
+        if (channelType == 1) { // 私聊
+            final String sql = "SELECT channel_type, channel_id, channel_name, admins, accids FROM channel " +
+                    " WHERE is_del = 0 AND channel_type = 1 AND accids ->> ? IS NOT NULL AND accids ->> ? IS NOT NULL";
+            if (accids.size() != 2) {
+                handler.handle(Future.failedFuture("Invalid accids."));
+                return;
+            }
+            BaseDao.queryWithParamsHandleJsonObject(asyncSQLClient, sql, accids, handler);
+        } else {
+            handler.handle(Future.succeededFuture(null));
+        }
+
+    }
+
+    @Override
     public void retrieveChannel(String channelId, Handler<AsyncResult<JsonObject>> handler) {
 
         final String sql = "SELECT channel_type, channel_id, channel_name, admins, accids FROM channel " +

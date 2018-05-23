@@ -1,6 +1,7 @@
 [
   {
     "comment": "1. 获取channel-message-sync（客户端-服务端）",
+    "comment-plus": "获取该用户相关的message记录",
     "header": {
       "topic": "channel-message-sync.get",
       "id": "ba1c1239-5a91-40d1-90f7-25a02e06d391"
@@ -21,24 +22,29 @@
         {
           "messageId": 20,
           "fromAccid": "xiaohong",
-          "toChannel": "ac2b1219-5a91-40d1-90f7-25a02e012398",
+          "channelId": "ac2b1219-5a91-40d1-90f7-25a02e012398",
           "createTime": 1525354622000,
-          "type": "TEXT",
-          "content": "世界，你好！"
+          "messageBody": {
+            "type": 1,
+            "content": "世界，你好！"
+          }
         },
         {
           "messageId": 32,
           "fromAccid": "xiaoming",
-          "toChannel": "f9540793-addd-434d-b61a-020d58134c24",
+          "channelId": "f9540793-addd-434d-b61a-020d58134c24",
           "createTime": 1525354623000,
-          "type": "TEXT",
-          "content": "Hello, world！"
+          "messageBody": {
+            "type": 1,
+            "content": "I am good！"
+          }
         }
       ]
     }
   },
   {
     "comment": "2. 删除channel-message-sync（客户端-服务端）",
+    "comment-plus":"删除该用户相关的同步记录，消息记录仍保留",
     "header": {
       "topic": "channel-message-sync.delete",
       "id": "65da9a8f-9bf7-4d61-b7ed-cc4047145d70"
