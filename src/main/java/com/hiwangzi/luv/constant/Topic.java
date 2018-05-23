@@ -15,4 +15,6 @@ public class Topic {
     public static final String CMS_GET = "channel-message-sync.get";
     public static final String CMS_DELETE = "channel-message-sync.delete";
 
+    public static final String PUSH_POST = "push.post";
+
 }

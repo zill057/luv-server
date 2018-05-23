@@ -4,6 +4,7 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 
 @ProxyGen
 public interface PushService {
@@ -16,4 +17,5 @@ public interface PushService {
         return new PushServiceVertxEBProxy(vertx, address);
     }
 
+    void createPush(String syncAccid, JsonObject push, Handler<AsyncResult<Void>> handler);
 }

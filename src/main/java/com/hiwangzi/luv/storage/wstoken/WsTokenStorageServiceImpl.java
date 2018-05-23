@@ -18,6 +18,13 @@ public class WsTokenStorageServiceImpl implements WsTokenStorageService {
     }
 
     @Override
+    public void retrieveWsHandlerIdByAccid(String accid, Handler<AsyncResult<JsonArray>> handler) {
+        final String sql = "SELECT text_handler_id, binary_handler_id FROM wstoken WHERE accid = ?";
+        JsonArray params = new JsonArray().add(accid);
+        BaseDao.queryWithParamsHandleJsonArray(asyncSQLClient, sql, params, handler);
+    }
+
+    @Override
     public void retrieveWsHandlerId(String wsToken, Handler<AsyncResult<JsonObject>> handler) {
         final String sql = "SELECT text_handler_id, binary_handler_id FROM wstoken WHERE ws_token = ?";
         JsonArray params = new JsonArray().add(wsToken);

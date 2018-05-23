@@ -11,6 +11,7 @@
     "payload": {
       "push": {
         "type": "message.post",
+        "createTime": 1525354622000,
         "content": {
           "channelId": "4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
           "message": {
