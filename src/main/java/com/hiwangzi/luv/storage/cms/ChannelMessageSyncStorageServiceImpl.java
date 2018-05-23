@@ -1,4 +1,4 @@
-package com.hiwangzi.luv.storage.cmsync;
+package com.hiwangzi.luv.storage.cms;
 
 import com.hiwangzi.luv.storage.BaseDao;
 import io.vertx.core.AsyncResult;

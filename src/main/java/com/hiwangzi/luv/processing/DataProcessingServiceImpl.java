@@ -3,7 +3,7 @@ package com.hiwangzi.luv.processing;
 import com.hiwangzi.luv.constant.Topic;
 import com.hiwangzi.luv.storage.StorageVerticle;
 import com.hiwangzi.luv.storage.channel.ChannelStorageService;
-import com.hiwangzi.luv.storage.cmsync.ChannelMessageSyncStorageService;
+import com.hiwangzi.luv.storage.cms.ChannelMessageSyncStorageService;
 import com.hiwangzi.luv.storage.message.MessageStorageService;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;

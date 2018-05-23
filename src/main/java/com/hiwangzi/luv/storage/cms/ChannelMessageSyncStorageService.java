@@ -1,4 +1,4 @@
-package com.hiwangzi.luv.storage.cmsync;
+package com.hiwangzi.luv.storage.cms;
 
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.AsyncResult;

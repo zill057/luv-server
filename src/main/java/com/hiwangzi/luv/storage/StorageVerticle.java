@@ -1,8 +1,10 @@
 package com.hiwangzi.luv.storage;
 
+import com.hiwangzi.luv.storage.account.AccountStorageService;
 import com.hiwangzi.luv.storage.channel.ChannelStorageService;
-import com.hiwangzi.luv.storage.cmsync.ChannelMessageSyncStorageService;
+import com.hiwangzi.luv.storage.cms.ChannelMessageSyncStorageService;
 import com.hiwangzi.luv.storage.message.MessageStorageService;
+import com.hiwangzi.luv.storage.wstoken.WsTokenStorageService;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -22,6 +24,8 @@ public class StorageVerticle extends AbstractVerticle {
     public static final String STORAGE_CHANNEL = "storage.channel";
     public static final String STORAGE_MESSAGE = "storage.message";
     public static final String STORAGE_CMS = "storage.channel-message-sync";
+    public static final String STORAGE_ACCOUNT = "storage.account";
+    public static final String STORAGE_WSTOKEN = "storage.ws-token";
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
@@ -34,19 +38,7 @@ public class StorageVerticle extends AbstractVerticle {
                 .put("database", config().getString(CONFIG_DB_NAME, "luv"))
                 .put("maxPoolSize", config().getInteger(CONFIG_DB_MAX_POOL_SIZE, 30)));
 
-        Future.<Void>future(createMessageStorageFuture -> {
-            StorageService.create(asyncSQLClient, ready -> {
-                if (ready.succeeded()) {
-                    new ServiceBinder(vertx)
-                            .setAddress(CONFIG_DB_QUEUE)
-                            .register(StorageService.class, ready.result());
-                    createMessageStorageFuture.complete();
-                } else {
-                    createMessageStorageFuture.fail(ready.cause());
-                }
-            });
-
-        }).compose(nothing -> Future.<Void>future(createChannelDao ->
+        (Future.<Void>future(createChannelDao ->
                 ChannelStorageService.create(asyncSQLClient, ar -> {
                     if (ar.succeeded()) {
                         new ServiceBinder(vertx)
@@ -79,6 +71,30 @@ public class StorageVerticle extends AbstractVerticle {
                         createCMSDao.complete();
                     } else {
                         createCMSDao.fail(ar.cause());
+                    }
+                }))
+
+        ).compose(nothing -> Future.<Void>future(createAccountDao ->
+                AccountStorageService.create(asyncSQLClient, ar -> {
+                    if (ar.succeeded()) {
+                        new ServiceBinder(vertx)
+                                .setAddress(STORAGE_ACCOUNT)
+                                .register(AccountStorageService.class, ar.result());
+                        createAccountDao.complete();
+                    } else {
+                        createAccountDao.fail(ar.cause());
+                    }
+                }))
+
+        ).compose(nothing -> Future.<Void>future(createWsTokenDao ->
+                WsTokenStorageService.create(asyncSQLClient, ar -> {
+                    if (ar.succeeded()) {
+                        new ServiceBinder(vertx)
+                                .setAddress(STORAGE_WSTOKEN)
+                                .register(WsTokenStorageService.class, ar.result());
+                        createWsTokenDao.complete();
+                    } else {
+                        createWsTokenDao.fail(ar.cause());
                     }
                 }))
 
