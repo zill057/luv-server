@@ -52,7 +52,7 @@ public class PushServiceImpl implements PushService {
             if (ar.succeeded()) {
                 List<String> textHandlerIdList = new ArrayList<>();
                 for (Object handlerId : ar.result()) {
-                    String textHandlerId = ((JsonObject) handler).getString("text_handler_id");
+                    String textHandlerId = ((JsonObject) handlerId).getString("text_handler_id");
                     if (textHandlerId != null) {
                         textHandlerIdList.add(textHandlerId);
                     }

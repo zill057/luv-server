@@ -1,6 +1,8 @@
 package com.hiwangzi.luv.processing;
 
 import com.hiwangzi.luv.constant.Topic;
+import com.hiwangzi.luv.push.PushService;
+import com.hiwangzi.luv.push.PushVerticle;
 import com.hiwangzi.luv.storage.StorageVerticle;
 import com.hiwangzi.luv.storage.channel.ChannelStorageService;
 import com.hiwangzi.luv.storage.cms.ChannelMessageSyncStorageService;
@@ -25,6 +27,7 @@ public class DataProcessingServiceImpl implements DataProcessingService {
     private ChannelStorageService channelStorageService;
     private MessageStorageService messageStorageService;
     private ChannelMessageSyncStorageService channelMessageSyncStorageService;
+    private PushService pushService;
 
     @Override
     public DataProcessingService process(JsonObject serverAppendage, JsonObject header, JsonObject payload,
@@ -280,8 +283,16 @@ public class DataProcessingServiceImpl implements DataProcessingService {
                     if (ar.succeeded()) {
                         if (ar.result() != null) {
                             handler.handle(Future.succeededFuture(new JsonObject().put("messageId", ar.result()).put("createTime", postTime)));
+                            // 用于推送
+                            JsonObject message = new JsonObject().put("messageId", ar.result())
+                                    .put("fromAccid", fromAccid).put("channelId", channelId)
+                                    .put("createTime", postTime).put("messageBody", messageBody);
+                            JsonObject push = new JsonObject().put("type", Topic.MESSAGE_POST).put("createTime", postTime)
+                                    .put("content", new JsonObject().put("message", message));
                             for (Object accid : accids) {
                                 channelMessageSyncStorageService.createCMS(ar.result(), fromAccid, channelId, postTime, messageBody, accid.toString(), doNothing -> {
+                                });
+                                pushService.createPush(accid.toString(), push, doNothing -> {
                                 });
                             }
 
@@ -355,6 +366,7 @@ public class DataProcessingServiceImpl implements DataProcessingService {
         this.channelStorageService = ChannelStorageService.createProxy(vertx, StorageVerticle.STORAGE_CHANNEL);
         this.messageStorageService = MessageStorageService.createProxy(vertx, StorageVerticle.STORAGE_MESSAGE);
         this.channelMessageSyncStorageService = ChannelMessageSyncStorageService.createProxy(vertx, StorageVerticle.STORAGE_CMS);
+        this.pushService = PushService.createProxy(vertx, PushVerticle.CONFIG_PUSH_QUEUE);
         readyHandler.handle(Future.succeededFuture(this));
     }
 }

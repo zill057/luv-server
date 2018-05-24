@@ -91,7 +91,7 @@ public class ConnectionListeningVerticle extends AbstractVerticle {
                             ws.close((short) 401, "Unauthorized");
                             return;
                         }
-                        if (existedWsHandlerId.result().getJsonObject("text_handler_id") != null) {
+                        if (existedWsHandlerId.result().getString("text_handler_id") != null) {
                             ws.close((short) 403, "WsToken has been used.");
                             return;
                         }

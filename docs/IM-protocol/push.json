@@ -13,13 +13,15 @@
         "type": "message.post",
         "createTime": 1525354622000,
         "content": {
-          "channelId": "4d2db3e6-b477-450b-ba3a-6ed30c1319d6",
           "message": {
             "messageId": 20,
             "fromAccid": "xiaohong",
+            "channelId": "ac2b1219-5a91-40d1-90f7-25a02e012398",
             "createTime": 1525354622000,
-            "type": "TEXT",
-            "content": "世界，你好！"
+            "messageBody": {
+              "type": 1,
+              "content": "世界，你好！"
+            }
           }
         }
       }
