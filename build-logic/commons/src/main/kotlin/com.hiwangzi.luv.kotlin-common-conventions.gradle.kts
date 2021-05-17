@@ -20,13 +20,17 @@ compileKotlin.kotlinOptions.jvmTarget = JavaVersion.VERSION_11.toString()
 val compileTestKotlin: KotlinCompile by tasks
 compileTestKotlin.kotlinOptions.jvmTarget = JavaVersion.VERSION_11.toString()
 
-val vertxVersion = "4.0.3"
-val junitJupiterVersion = "5.7.0"
+ext {
+  set("vertxVersion", "4.0.3")
+  set("junitJupiterVersion", "5.7.0")
+}
+
+val vertxVersion = project.ext.get("vertxVersion")
+val junitJupiterVersion = project.ext.get("junitJupiterVersion")
 dependencies {
   constraints {
-    testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.12.2")
   }
-
   // vertx base
   implementation(platform("io.vertx:vertx-stack-depchain:$vertxVersion"))
   implementation("io.vertx:vertx-lang-kotlin:$vertxVersion")
@@ -38,7 +42,7 @@ dependencies {
   runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.14.1")
   // test
   testImplementation("io.vertx:vertx-junit5")
-  testImplementation("org.junit.jupiter:junit-jupiter")
+  testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 }
 
 tasks.test {
