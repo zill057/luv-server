@@ -8,8 +8,8 @@ data class IMGroup(
   val id: String,
   val name: String,
   val profilePhoto: String,
-  var creator: User? = null,
-  var latestMessage: IMMessage? = null
+  var creator: User?,
+  var latestMessage: IMMessage?
 ) {
 
   constructor(jsonObject: JsonObject) : this(

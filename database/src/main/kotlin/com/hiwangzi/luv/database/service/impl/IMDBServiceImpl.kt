@@ -76,6 +76,16 @@ class IMDBServiceImpl(private val pgPool: PgPool) : IMDBService {
                  t_group.id,
                  t_group.name,
                  t_group.profile_photo,
+                 t_group.creator_id,
+                 t_creator.id as creator_id,
+                 t_creator.name as creator_name,
+                 t_creator.profile_photo as creator_profile_photo,
+                 t_creator.email as creator_email,
+                 t_creator.phone as creator_phone,
+                 t_creator_dept.id as creator_dept_id,
+                 t_creator_dept.name as creator_dept_name,
+                 t_creator_org.id as creator_org_id,
+                 t_creator_org.name as creator_org_name,
                  t_msg.id as msg_id,
                  t_msg.from_user,
                  t_msg.message_type,
@@ -84,6 +94,9 @@ class IMDBServiceImpl(private val pgPool: PgPool) : IMDBService {
                  t_msg.created_at
           FROM luv_im.user_group_relationships as t_u_g_rs
               LEFT JOIN luv_im.groups as t_group ON t_u_g_rs.group_id = t_group.id
+              LEFT JOIN luv_user.users as t_creator ON t_group.creator_id = t_creator.id
+              LEFT JOIN luv_user.departments as t_creator_dept ON t_creator.department_id = t_creator_dept.id
+              LEFT JOIN luv_user.organizations as t_creator_org ON t_creator_dept.organization_id = t_creator_org.id
               LEFT JOIN luv_im.messages as t_msg ON t_group.id = t_msg.group_id
           WHERE t_u_g_rs.user_id = $1
           ORDER BY t_msg.group_id, t_msg.created_at DESC
@@ -98,9 +111,18 @@ class IMDBServiceImpl(private val pgPool: PgPool) : IMDBService {
             id = row.getUUID("id").toString(),
             name = row.getString("name"),
             profilePhoto = row.getString("profile_photo"),
+            creator = User(
+              id = row.getUUID("creator_id").toString(),
+              name = row.getString("creator_name"),
+              profilePhoto = row.getString("creator_profile_photo"),
+              email = row.getString("creator_email"),
+              phone = row.getString("creator_phone"),
+              department = Department(row.getUUID("creator_dept_id").toString(), row.getString("creator_dept_name")),
+              organization = Organization(row.getUUID("creator_org_id").toString(), row.getString("creator_org_name"))
+            ),
             latestMessage = IMMessage(
               id = row.getUUID("msg_id").toString(),
-              senderId = row.getUUID("from_user").toString(),
+              senderId = row.getUUID("from_user")?.toString(),
               messageType = MessageType.fromCode(row.getInteger("message_type")),
               contentType = ContentType.fromCode(row.getInteger("content_type")),
               content = row.getString("content"),

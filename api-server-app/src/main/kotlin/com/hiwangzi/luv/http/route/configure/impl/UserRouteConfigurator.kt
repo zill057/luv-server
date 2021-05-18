@@ -38,7 +38,7 @@ class UserRouteConfigurator(vertx: Vertx, private val authFeature: AuthFeature) 
      *         "name": "王子",
      *         "profilePhoto": "http://user-files.hiwangzi.com/default-avatars/7.jpg",
      *         "email": "meetzwang@gmail.com",
-     *         "phone": "meetzwang@gmail.com",
+     *         "phone": "18812345678",
      *         "department": {
      *           "id": "787762b4-ecbf-4114-a7fd-a8b2a7ae6ac7",
      *           "name": "默认部门"
@@ -83,7 +83,7 @@ class UserRouteConfigurator(vertx: Vertx, private val authFeature: AuthFeature) 
      *       "name": "王子",
      *       "profilePhoto": "http://user-files.hiwangzi.com/default-avatars/7.jpg",
      *       "email": "meetzwang@gmail.com",
-     *       "phone": "meetzwang@gmail.com",
+     *       "phone": "18812345678",
      *       "department": {
      *         "id": "787762b4-ecbf-4114-a7fd-a8b2a7ae6ac7",
      *         "name": "默认部门"

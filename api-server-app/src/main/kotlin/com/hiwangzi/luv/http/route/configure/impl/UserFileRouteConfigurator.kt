@@ -10,7 +10,7 @@ import io.vertx.core.http.HttpMethod
 import io.vertx.ext.web.Router
 import io.vertx.kotlin.core.json.jsonObjectOf
 
-class UserFileConfigurator(
+class UserFileRouteConfigurator(
   private val vertx: Vertx,
   private val authFeature: AuthFeature,
   private val userFilesHost: String,

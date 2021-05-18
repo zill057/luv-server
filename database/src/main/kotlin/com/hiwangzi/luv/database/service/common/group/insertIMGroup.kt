@@ -11,7 +11,10 @@ fun insertIMGroup(sqlClient: SqlClient, name: String, profilePhoto: String): Fut
     .execute(Tuple.of(name, profilePhoto))
     .compose { rowSet ->
       Future.succeededFuture(
-        IMGroup(id = rowSet.first().getUUID("id").toString(), name = name, profilePhoto = profilePhoto)
+        IMGroup(
+          id = rowSet.first().getUUID("id").toString(), name = name, profilePhoto = profilePhoto,
+          creator = null, latestMessage = null
+        )
       )
     }
 }
