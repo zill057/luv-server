@@ -3,51 +3,31 @@ package com.hiwangzi.luv.database.service
 import com.hiwangzi.luv.database.service.impl.UserDBServiceImpl
 import com.hiwangzi.luv.model.enumeration.UserIdentityType
 import com.hiwangzi.luv.model.resource.Device
+import com.hiwangzi.luv.model.resource.User
+import com.hiwangzi.luv.model.resource.UserInformation
 import io.vertx.codegen.annotations.ProxyGen
 import io.vertx.core.AsyncResult
 import io.vertx.core.Handler
 import io.vertx.core.Vertx
-import io.vertx.core.json.JsonObject
 import io.vertx.pgclient.PgPool
 
 @ProxyGen
 interface UserDBService {
 
   /**
-   * user information
-   * <pre>
-   * {
-   *   "user": {
-   *     "id": "",
-   *     "name": "",
-   *     "profilePhoto": "",
-   *     "department": {
-   *       "id": "b555b982-66e5-40c7-9658-670e826e94cd",
-   *       "name": "天才吧"
-   *     },
-   *     "organization": {
-   *       "id": "38a21c11-90a4-430b-bd99-e18253337ea9",
-   *       "name": "苹果电子产品商贸（北京）有限公司"
-   *     }
-   *   },
-   *   "identity": {
-   *     "id": "",
-   *     "credential": ""
-   *   }
-   * }
-   * </pre>
-   *
-   *
    * Find user's info by user's identifier (e.g username, phone)
    *
    * @param platformId    Platform client's ID
    * @param identityType  Identify type
    * @param identifier    Identifier, e.g username, phone
    * @param resultHandler handle result `user information`, `null` if not fount
+   *
+   * @see com.hiwangzi.luv.model.resource.User
+   * @see com.hiwangzi.luv.model.resource.Identity
    */
   fun findUserInformation(
     platformId: String, identityType: UserIdentityType, identifier: String,
-    resultHandler: Handler<AsyncResult<JsonObject?>>
+    resultHandler: Handler<AsyncResult<UserInformation?>>
   )
 
   /**
@@ -75,7 +55,7 @@ interface UserDBService {
    * @param userId    user id
    * @param resultHandler handle result `user`, <strong><code>null</code> if not fount</strong>
    */
-  fun findUserById(platformId: String, userId: String, resultHandler: Handler<AsyncResult<JsonObject?>>)
+  fun findUserById(platformId: String, userId: String, resultHandler: Handler<AsyncResult<User?>>)
 
   /**
    * Save generated user's authorization
@@ -89,10 +69,12 @@ interface UserDBService {
    */
   fun saveUserAuthorization(
     userId: String,
-    token: String,
     device: Device,
+    accessToken: String,
+    refreshToken: String,
+    accessTokenExpiredAt: Long,
+    refreshTokenExpiredAt: Long,
     issuedAt: Long,
-    expiredAt: Long,
     resultHandler: Handler<AsyncResult<String>>
   )
 
@@ -101,7 +83,6 @@ interface UserDBService {
     authorizationId: String,
     resultHandler: Handler<AsyncResult<Void>>
   )
-
 }
 
 object UserDBServiceFactory {

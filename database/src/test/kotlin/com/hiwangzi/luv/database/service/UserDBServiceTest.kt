@@ -43,7 +43,7 @@ class UserDBServiceTest {
         "18812345678"
       ) { ar ->
         if (ar.succeeded()) {
-          LOGGER.debug(ar.result()?.encodePrettily())
+          LOGGER.debug(ar.result().toString())
           Assertions.assertNotNull(ar.result())
           testContext.completeNow()
         } else {
@@ -60,14 +60,7 @@ class UserDBServiceTest {
         "6228df95-4458-4d5b-9d2f-48fe8f19ba35"
       ) { ar ->
         if (ar.succeeded()) {
-          LOGGER.debug(ar.result()?.encodePrettily())
-          val user = ar.result()
-          Assertions.assertNotNull(user)
-          Assertions.assertNotNull(user?.getString("id"))
-          Assertions.assertNotNull(user?.getString("name"))
-          Assertions.assertNotNull(user?.getString("profilePhoto"))
-          Assertions.assertNotNull(user?.getJsonObject("department"))
-          Assertions.assertNotNull(user?.getJsonObject("organization"))
+          LOGGER.debug(ar.result()?.toString())
           testContext.completeNow()
         } else {
           testContext.failNow(ar.cause())
@@ -80,10 +73,12 @@ class UserDBServiceTest {
     UserDBServiceFactory.createProxy(vertx)
       .saveUserAuthorization(
         userId = "6228df95-4458-4d5b-9d2f-48fe8f19ba35",
-        token = "test token",
-        device = Device(name = "(database) iPhone 12 Pro Max", os = "iOS 14.5.1", ip = "223.166.93.68"),
-        issuedAt = System.currentTimeMillis(),
-        expiredAt = System.currentTimeMillis()
+        device = Device(name = UserDBServiceTest::class.java.canonicalName, os = "macOS 11.3.1", ip = "127.0.0.1"),
+        accessToken = "access token",
+        refreshToken = "refresh token",
+        accessTokenExpiredAt = System.currentTimeMillis(),
+        refreshTokenExpiredAt = System.currentTimeMillis(),
+        issuedAt = System.currentTimeMillis()
       ) { ar ->
         if (ar.succeeded()) {
           LOGGER.debug(ar.result())

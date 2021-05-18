@@ -2,13 +2,11 @@ package com.hiwangzi.luv.database.service.impl
 
 import com.hiwangzi.luv.database.service.UserDBService
 import com.hiwangzi.luv.model.enumeration.UserIdentityType
-import com.hiwangzi.luv.model.exception.SystemError
-import com.hiwangzi.luv.model.resource.Device
+import com.hiwangzi.luv.model.exception.SystemException
+import com.hiwangzi.luv.model.resource.*
 import io.vertx.core.AsyncResult
 import io.vertx.core.Future
 import io.vertx.core.Handler
-import io.vertx.core.json.JsonObject
-import io.vertx.kotlin.core.json.jsonObjectOf
 import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.Tuple
 import java.time.Instant
@@ -18,10 +16,8 @@ import java.time.ZoneId
 class UserDBServiceImpl(private val pgPool: PgPool) : UserDBService {
 
   override fun findUserInformation(
-    platformId: String,
-    identityType: UserIdentityType,
-    identifier: String,
-    resultHandler: Handler<AsyncResult<JsonObject?>>
+    platformId: String, identityType: UserIdentityType, identifier: String,
+    resultHandler: Handler<AsyncResult<UserInformation?>>
   ) {
     val sql = """
       SELECT t_identities.user_id as user_id,
@@ -29,10 +25,10 @@ class UserDBServiceImpl(private val pgPool: PgPool) : UserDBService {
              t_user.profile_photo,
              t_user.email,
              t_user.phone,
-             t_dept.id as department_id,
-             t_dept.name as department_name,
-             t_org.id as organization_id,
-             t_org.name as organization_name,
+             t_dept.id as dept_id,
+             t_dept.name as dept_name,
+             t_org.id as org_id,
+             t_org.name as org_name,
              t_identities.id as identity_id,
              t_identities.credential
       FROM luv_user.user_identities as t_identities
@@ -48,109 +44,54 @@ class UserDBServiceImpl(private val pgPool: PgPool) : UserDBService {
       .compose { rowSet ->
         Future.succeededFuture(
           rowSet.firstOrNull()?.let { row ->
-            val user = jsonObjectOf(
-              Pair("id", row.getUUID("user_id").toString()),
-              Pair("name", row.getString("user_name")),
-              Pair("profilePhoto", row.getString("profile_photo")),
-              Pair("email", row.getString("email")),
-              Pair("phone", row.getString("email")),
-              Pair(
-                "department",
-                jsonObjectOf(
-                  Pair("id", row.getUUID("department_id").toString()),
-                  Pair("name", row.getString("department_name")),
-                )
-              ),
-              Pair(
-                "organization",
-                jsonObjectOf(
-                  Pair("id", row.getUUID("organization_id").toString()),
-                  Pair("name", row.getString("organization_name")),
-                )
-              )
+            val user = User(
+              id = row.getUUID("user_id").toString(),
+              name = row.getString("user_name"),
+              profilePhoto = row.getString("profile_photo"),
+              email = row.getString("email"),
+              phone = row.getString("email"),
+              department = Department(row.getUUID("dept_id").toString(), row.getString("dept_name")),
+              organization = Organization(row.getUUID("org_id").toString(), row.getString("org_name"))
             )
-            val identity = jsonObjectOf(
-              Pair("id", row.getUUID("identity_id").toString()),
-              Pair("credential", row.getString("credential"))
+            val identity = Identity(
+              id = row.getUUID("identity_id").toString(),
+              hashedCredential = row.getString("credential")
             )
-            jsonObjectOf(Pair("user", user), Pair("identity", identity))
+            UserInformation(user, identity)
           }
         )
       }.onComplete { resultHandler.handle(it) }
   }
 
-  override fun findUserById(
-    platformId: String,
-    userId: String, resultHandler:
-    Handler<AsyncResult<JsonObject?>>
-  ) {
-    val sql = """
-      SELECT t_user.id as user_id,
-             t_user.name as user_name,
-             t_user.profile_photo,
-             t_user.email,
-             t_user.phone,
-             t_dept.id as department_id,
-             t_dept.name as department_name,
-             t_org.id as organization_id,
-             t_org.name as organization_name
-      FROM luv_user.users as t_user
-               LEFT JOIN luv_user.departments as t_dept ON t_user.department_id = t_dept.id
-               LEFT JOIN luv_user.organizations as t_org ON t_dept.organization_id = t_org.id
-      WHERE t_user.platform_id = $1
-        AND t_user.id = $2
-    """.trimIndent()
-    pgPool.preparedQuery(sql)
-      .execute(Tuple.of(platformId, userId))
-      .compose { rowSet ->
-        Future.succeededFuture(
-          rowSet.firstOrNull()?.let { row ->
-            jsonObjectOf(
-              Pair("id", row.getUUID("user_id").toString()),
-              Pair("name", row.getString("user_name")),
-              Pair("profilePhoto", row.getString("profile_photo")),
-              Pair("email", row.getString("email")),
-              Pair("phone", row.getString("phone")),
-              Pair(
-                "department",
-                jsonObjectOf(
-                  Pair("id", row.getUUID("department_id").toString()),
-                  Pair("name", row.getString("department_name")),
-                )
-              ),
-              Pair(
-                "organization",
-                jsonObjectOf(
-                  Pair("id", row.getUUID("organization_id").toString()),
-                  Pair("name", row.getString("organization_name")),
-                )
-              )
-            )
-          }
-        )
-      }.onComplete { resultHandler.handle(it) }
+  override fun findUserById(platformId: String, userId: String, resultHandler: Handler<AsyncResult<User?>>) {
+    com.hiwangzi.luv.database.service.common.user
+      .findUserById(pgPool, platformId, userId)
+      .onComplete { resultHandler.handle(it) }
   }
 
   override fun saveUserAuthorization(
     userId: String,
-    token: String,
     device: Device,
+    accessToken: String,
+    refreshToken: String,
+    accessTokenExpiredAt: Long,
+    refreshTokenExpiredAt: Long,
     issuedAt: Long,
-    expiredAt: Long,
     resultHandler: Handler<AsyncResult<String>>
   ) {
     val sql = """
       INSERT INTO luv_user.user_authorizations
-      (user_id, token, device, issued_at, expired_at)
-      VALUES ($1, $2, $3, $4, $5)
+      (user_id, device, access_token, refresh_token, access_expired_at, refresh_expired_at, issued_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING id
     """.trimIndent()
     pgPool.preparedQuery(sql)
       .execute(
         Tuple.of(
-          userId, token, device.toJson(),
-          OffsetDateTime.ofInstant(Instant.ofEpochMilli(issuedAt), ZoneId.of("Asia/Shanghai")),
-          OffsetDateTime.ofInstant(Instant.ofEpochMilli(expiredAt), ZoneId.of("Asia/Shanghai"))
+          userId, device.toJson(), accessToken, refreshToken,
+          OffsetDateTime.ofInstant(Instant.ofEpochMilli(accessTokenExpiredAt), ZoneId.of("Asia/Shanghai")),
+          OffsetDateTime.ofInstant(Instant.ofEpochMilli(refreshTokenExpiredAt), ZoneId.of("Asia/Shanghai")),
+          OffsetDateTime.ofInstant(Instant.ofEpochMilli(issuedAt), ZoneId.of("Asia/Shanghai"))
         )
       )
       .compose { rowSet ->
@@ -158,7 +99,7 @@ class UserDBServiceImpl(private val pgPool: PgPool) : UserDBService {
         if (authorizationId != null) {
           Future.succeededFuture(authorizationId.toString())
         } else {
-          Future.failedFuture(SystemError("No returning authorization id"))
+          Future.failedFuture(SystemException("No returning authorization id"))
         }
       }
       .onComplete { resultHandler.handle(it) }
@@ -183,5 +124,4 @@ class UserDBServiceImpl(private val pgPool: PgPool) : UserDBService {
       .onSuccess { resultHandler.handle(Future.succeededFuture()) }
       .onFailure { resultHandler.handle(Future.failedFuture(it)) }
   }
-
 }

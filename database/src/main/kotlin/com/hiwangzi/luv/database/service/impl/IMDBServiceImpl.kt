@@ -17,7 +17,7 @@ import io.vertx.sqlclient.Tuple
 class IMDBServiceImpl(private val pgPool: PgPool) : IMDBService {
 
   override fun listMemberIdsByGroupId(groupId: String, resultHandler: Handler<AsyncResult<List<String>>>) {
-    val sql = "SELECT user_id AS id FROM xp_im.user_group_relationships WHERE group_id = $1"
+    val sql = "SELECT user_id AS id FROM luv_im.user_group_relationships WHERE group_id = $1"
     pgPool.preparedQuery(sql)
       .execute(Tuple.of(groupId))
       .onSuccess { rowSet ->
@@ -41,10 +41,10 @@ class IMDBServiceImpl(private val pgPool: PgPool) : IMDBService {
              t_dept.name as dept_name,
              t_org.id as org_id,
              t_org.name as org_name
-      FROM xp_im.user_group_relationships as t_u_g_rs
-         LEFT JOIN xp_user.users as t_user ON t_u_g_rs.user_id = t_user.id
-         LEFT JOIN xp_user.departments as t_dept ON t_user.department_id = t_dept.id
-         LEFT JOIN xp_user.organizations as t_org ON t_dept.organization_id = t_org.id
+      FROM luv_im.user_group_relationships as t_u_g_rs
+         LEFT JOIN luv_user.users as t_user ON t_u_g_rs.user_id = t_user.id
+         LEFT JOIN luv_user.departments as t_dept ON t_user.department_id = t_dept.id
+         LEFT JOIN luv_user.organizations as t_org ON t_dept.organization_id = t_org.id
       WHERE t_u_g_rs.group_id = $1
     """.trimIndent()
     pgPool.preparedQuery(sql)
@@ -82,9 +82,9 @@ class IMDBServiceImpl(private val pgPool: PgPool) : IMDBService {
                  t_msg.content_type,
                  t_msg.content,
                  t_msg.created_at
-          FROM xp_im.user_group_relationships as t_u_g_rs
-              LEFT JOIN xp_im.groups as t_group ON t_u_g_rs.group_id = t_group.id
-              LEFT JOIN xp_im.messages as t_msg ON t_group.id = t_msg.group_id
+          FROM luv_im.user_group_relationships as t_u_g_rs
+              LEFT JOIN luv_im.groups as t_group ON t_u_g_rs.group_id = t_group.id
+              LEFT JOIN luv_im.messages as t_msg ON t_group.id = t_msg.group_id
           WHERE t_u_g_rs.user_id = $1
           ORDER BY t_msg.group_id, t_msg.created_at DESC
       ) t
@@ -124,7 +124,7 @@ class IMDBServiceImpl(private val pgPool: PgPool) : IMDBService {
              t_msg.content_type,
              t_msg.content,
              t_msg.created_at
-      FROM xp_im.messages as t_msg
+      FROM luv_im.messages as t_msg
       WHERE t_msg.group_id = $1
     """.trimIndent()
     pgPool.preparedQuery(sql)
@@ -154,7 +154,7 @@ class IMDBServiceImpl(private val pgPool: PgPool) : IMDBService {
     resultHandler: Handler<AsyncResult<IMMessage>>
   ) {
     val sql = """
-      INSERT INTO xp_im.messages(message_type, content_type, content, from_user, group_id)
+      INSERT INTO luv_im.messages(message_type, content_type, content, from_user, group_id)
       VALUES ($1, $2, $3, $4, $5)
       RETURNING id, created_at
     """.trimIndent()

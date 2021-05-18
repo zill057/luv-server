@@ -1,9 +1,9 @@
-package com.hiwangzi.luv.model.exception.general
+package com.hiwangzi.luv.model.exception
 
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.jsonObjectOf
 
-open class LuvException(
+open class GeneralException(
   val status: Int,
   private val code: String,
   override val message: String,
