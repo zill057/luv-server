@@ -15,7 +15,7 @@ data class Authorization(
     id = jsonObject.getString("id"),
     accessToken = jsonObject.getString("accessToken"),
     refreshToken = jsonObject.getString("refreshToken"),
-    user = User(jsonObject.getJsonObject("id"))
+    user = User(jsonObject.getJsonObject("user"))
   )
 
   fun toJson(): JsonObject {
