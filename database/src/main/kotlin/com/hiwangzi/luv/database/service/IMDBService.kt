@@ -46,7 +46,7 @@ interface IMDBService {
     messageType: MessageType,
     contentType: ContentType,
     content: String,
-    fromUserId: String,
+    fromUserId: String?,
     resultHandler: Handler<AsyncResult<IMMessage>>
   )
 

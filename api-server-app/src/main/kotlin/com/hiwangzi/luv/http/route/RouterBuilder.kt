@@ -3,6 +3,7 @@ package com.hiwangzi.luv.http.route
 import com.hiwangzi.luv.auth.authFeatureOf
 import com.hiwangzi.luv.http.route.configure.impl.AuthorizationRouteConfigurator
 import com.hiwangzi.luv.http.route.configure.impl.UserFileConfigurator
+import com.hiwangzi.luv.http.route.configure.impl.UserRouteConfigurator
 import com.hiwangzi.luv.model.exception.LuvGeneralException
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpMethod
@@ -45,6 +46,7 @@ class RouterBuilder(
   private fun addLuvRoute(router: Router) {
     AuthorizationRouteConfigurator(authFeature).configure(router)
     UserFileConfigurator(vertx, authFeature, userFilesHost, processedDirectory).configure(router)
+    UserRouteConfigurator(vertx, authFeature).configure(router)
   }
 
   private fun addGeneralErrorsHandler(router: Router) {

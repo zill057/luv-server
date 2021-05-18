@@ -23,6 +23,8 @@ dependencies {
   implementation("com.hiwangzi.luv:model")
   implementation("com.hiwangzi.luv:database") // only for starting verticle
   implementation("com.hiwangzi.luv:auth-feature")
+  implementation("com.hiwangzi.luv:user-feature")
+  implementation("com.hiwangzi.luv:im-feature")
   // json
   implementation("com.fasterxml.jackson.core:jackson-databind:2.12.2")
   // web
