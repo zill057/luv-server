@@ -6,5 +6,5 @@
 |500|SYSTEM_ERROR|系统错误|5开头的状态码都为系统问题，请使用相同参数稍后重新调用|
 |400|PARAM_ERROR|参数错误|根据错误提示，传入正确参数|
 |401|INVALID_CREDENTIAL|用户名或密码错误||
-|401|EXPIRED_TOKEN|token失效|调用token刷新接口获取新token|
-|401|EXPIRED_REFRESH_TOKEN|token已经超过刷新有效期|退出系统|
+|401|EXPIRED_TOKEN|访问凭据已失效|调用token刷新接口获取新token|
+|401|EXPIRED_REFRESH_TOKEN|刷新凭据已失效|退出系统|

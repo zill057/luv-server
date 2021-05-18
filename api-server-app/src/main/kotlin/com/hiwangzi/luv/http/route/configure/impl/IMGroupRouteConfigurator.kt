@@ -52,7 +52,7 @@ class IMGroupRouteConfigurator(vertx: Vertx, private val authFeature: AuthFeatur
      *         },
      *         "latestMessage": {
      *             "id": "daba361b-6774-4192-a1a8-2bc894e70f76",
-     *             "senderId": "cedce3ef-87ca-41d8-bb14-52d8d05f4942",
+     *             "senderId": "cedce3ef-87ca-41d8-bb14-52d8d05f4942", // 可能为`null`(消息类型为`system`时)
      *             "messageType": "user", // 消息类型: user, system
      *             "contentType": "text/plain", // 内容类型: text/plain, text/image-url
      *             "content": "这是消息内容",
