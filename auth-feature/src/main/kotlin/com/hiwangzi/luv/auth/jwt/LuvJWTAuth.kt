@@ -1,6 +1,6 @@
 package com.hiwangzi.luv.auth.jwt
 
-import com.hiwangzi.luv.model.exception.ExpiredTokenError
+import com.hiwangzi.luv.model.exception.ExpiredTokenException
 import io.vertx.core.AsyncResult
 import io.vertx.core.Future
 import io.vertx.core.Handler
@@ -33,7 +33,7 @@ class LuvJWTAuth(vertx: Vertx, securityConfig: JsonObject) : JWTAuth {
         resultHandler.handle(Future.succeededFuture(ar.result()))
       } else {
         val cause = ar.cause()
-        val wrappedCause = ExpiredTokenError(message = cause.message ?: "", cause = cause)
+        val wrappedCause = ExpiredTokenException(message = cause.message ?: "", cause = cause)
         resultHandler.handle(Future.failedFuture(wrappedCause))
       }
     }

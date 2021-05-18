@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" strict="true" name="api-server-app">
+
+  <Properties>
+    <Property name="logDirectory">${sys:user.home}/logs</Property>
+    <Property name="logFileName">${logDirectory}/api-server-app.log</Property>
+    <Property name="logFilePattern">${logDirectory}/$${date:yyyy-MM}/api-server-app-%d{yyyy-MM-dd}.log.gz</Property>
+  </Properties>
+
+  <Appenders>
+    <Appender type="Console" name="console">
+      <Layout type="PatternLayout" pattern="%highlight{%d %p [%l] - %m%n%throwable}"/>
+      <Filters>
+        <Filter type="ThresholdFilter" level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+      </Filters>
+    </Appender>
+
+    <Appender type="RollingFile" name="logDaily"
+              fileName="${logFileName}" filePattern="${logFilePattern}">
+      <Layout type="PatternLayout" pattern="%highlight{%d %p [%l] - %m%n%throwable}"/>
+      <Filters>
+        <Filter type="ThresholdFilter" level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+      </Filters>
+      <Policies>
+        <TimeBasedTriggeringPolicy/>
+      </Policies>
+    </Appender>
+
+  </Appenders>
+
+  <Loggers>
+    <Root level="INFO">
+      <AppenderRef ref="console"/>
+      <AppenderRef ref="logDaily"/>
+    </Root>
+    <Logger name="com.hiwangzi.luv" level="DEBUG"/>
+  </Loggers>
+
+</Configuration>

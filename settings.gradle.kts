@@ -6,3 +6,5 @@ includeBuild("model")
 includeBuild("database")
 
 includeBuild("auth-feature")
+
+includeBuild("api-server-app")

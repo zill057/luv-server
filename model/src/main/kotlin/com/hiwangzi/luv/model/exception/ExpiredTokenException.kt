@@ -1,6 +1,6 @@
 package com.hiwangzi.luv.model.exception
 
-class ExpiredTokenError(
+class ExpiredTokenException(
   message: String = "Access token expired",
   cause: Throwable? = null
-) : GeneralException(401, "EXPIRED_TOKEN", message, cause)
+) : LuvGeneralException(401, "EXPIRED_TOKEN", message, cause)

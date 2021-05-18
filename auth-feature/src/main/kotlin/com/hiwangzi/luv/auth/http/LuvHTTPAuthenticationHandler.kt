@@ -1,6 +1,6 @@
 package com.hiwangzi.luv.auth.http
 
-import com.hiwangzi.luv.model.exception.ExpiredTokenError
+import com.hiwangzi.luv.model.exception.ExpiredTokenException
 import io.vertx.core.AsyncResult
 import io.vertx.core.Future
 import io.vertx.core.Handler
@@ -15,23 +15,22 @@ class LuvHTTPAuthenticationHandler<T : AuthenticationProvider>(authProvider: T) 
   AuthenticationHandlerImpl<T>(authProvider) {
 
   override fun parseCredentials(context: RoutingContext, handler: Handler<AsyncResult<Credentials>>) {
-
     val request = context.request()
     val authorization = request.getHeader(HttpHeaders.AUTHORIZATION)
 
     if (authorization == null) {
-      handler.handle(Future.failedFuture(ExpiredTokenError(message = "Empty authorization header")))
+      handler.handle(Future.failedFuture(ExpiredTokenException(message = "Empty authorization header")))
       return
     }
 
     try {
       val idx = authorization.indexOf(' ')
       if (idx <= 0) {
-        handler.handle(Future.failedFuture(ExpiredTokenError(message = "Invalid authorization header")))
+        handler.handle(Future.failedFuture(ExpiredTokenException(message = "Invalid authorization header")))
         return
       }
       if ("Bearer" != authorization.substring(0, idx)) {
-        handler.handle(Future.failedFuture(ExpiredTokenError(message = "Invalid format for authorization header")))
+        handler.handle(Future.failedFuture(ExpiredTokenException(message = "Invalid format for authorization header")))
         return
       }
       handler.handle(Future.succeededFuture(TokenCredentials(authorization.substring(idx + 1))))

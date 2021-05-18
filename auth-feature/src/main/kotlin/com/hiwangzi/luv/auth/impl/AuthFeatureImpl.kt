@@ -7,7 +7,7 @@ import com.hiwangzi.luv.auth.jwt.LuvJWTAuth
 import com.hiwangzi.luv.database.service.UserDBServiceFactory
 import com.hiwangzi.luv.model.enumeration.UserIdentityType
 import com.hiwangzi.luv.model.exception.ExpiredRefreshTokenException
-import com.hiwangzi.luv.model.exception.InvalidCredentialException
+import com.hiwangzi.luv.model.exception.InvalidCredentialExceptionLuv
 import com.hiwangzi.luv.model.exception.SystemException
 import com.hiwangzi.luv.model.resource.Authorization
 import com.hiwangzi.luv.model.resource.Device
@@ -26,19 +26,20 @@ class AuthFeatureImpl(vertx: Vertx, securityConfig: JsonObject) : AuthFeature {
   private val accessTokenExpiresInSeconds = securityConfig.getInteger("tokenExpiresInMinutes", 30) * 60
   private val refreshTokenExpiresInSeconds = securityConfig.getInteger("refreshTokenExpiresInMinutes", 10080) * 60
   private val userDBService = UserDBServiceFactory.createProxy(vertx)
+  private val luvJwtAuth = LuvJWTAuth(vertx, securityConfig)
 
-  override val authenticationProvider = LuvJWTAuth(vertx, securityConfig)
-  override val authenticationHandler = LuvHTTPAuthenticationHandler(authenticationProvider)
+  override val stompAuthenticationProvider = luvJwtAuth
+  override val httpAuthenticationHandler = LuvHTTPAuthenticationHandler(luvJwtAuth)
 
   override fun authenticate(accessToken: String): Future<io.vertx.ext.auth.User> {
     val promise = Promise.promise<io.vertx.ext.auth.User>()
-    authenticationProvider.authenticate(jsonObjectOf(Pair("token", accessToken)), promise::handle)
+    luvJwtAuth.authenticate(jsonObjectOf(Pair("token", accessToken)), promise::handle)
     return promise.future()
   }
 
   override fun authenticateRefreshToken(refreshToken: String): Future<io.vertx.ext.auth.User> {
     val promise = Promise.promise<io.vertx.ext.auth.User>()
-    authenticationProvider.authenticate(jsonObjectOf(Pair("token", refreshToken))) { userR ->
+    luvJwtAuth.authenticate(jsonObjectOf(Pair("token", refreshToken))) { userR ->
       if (userR.succeeded()) {
         val user = userR.result()
         if (user.get("refresh")) {
@@ -75,7 +76,7 @@ class AuthFeatureImpl(vertx: Vertx, securityConfig: JsonObject) : AuthFeature {
       // user not found
       val userInformation = userInfoR.result()
       if (userInformation == null) {
-        promise.fail(InvalidCredentialException())
+        promise.fail(InvalidCredentialExceptionLuv())
         logger.warn(
           "User not found at generateAuthorization, platformId: $trimmedPlatformId, " +
             "identityType: $identityType, _identifier: $trimmedIdentifier"
@@ -89,7 +90,7 @@ class AuthFeatureImpl(vertx: Vertx, securityConfig: JsonObject) : AuthFeature {
         plainCredential = trimmedCredential, hashedCredential = identity.hashedCredential
       )
       if (notPassed) {
-        promise.fail(InvalidCredentialException())
+        promise.fail(InvalidCredentialExceptionLuv())
         logger.warn(
           "Password not match at generateAuthorization, platformId: $trimmedPlatformId, " +
             "identityType: $identityType, _identifier: $trimmedIdentifier"
@@ -105,35 +106,30 @@ class AuthFeatureImpl(vertx: Vertx, securityConfig: JsonObject) : AuthFeature {
   override fun refreshAuthorization(
     platformId: String,
     device: Device,
-    userId: String,
     refreshToken: String
   ): Future<Authorization> {
     val promise = Promise.promise<Authorization>()
     val trimmedPlatformId = platformId.trim()
-    val trimmedUserId = userId.trim()
     this.authenticateRefreshToken(refreshToken)
       .onFailure(promise::fail)
       .onSuccess { vertxUser ->
-        if (trimmedUserId != vertxUser.get("sub")) {
-          promise.fail(ExpiredRefreshTokenException("Invalid refresh token: user's id not match"))
-        } else {
-          userDBService.findUserById(trimmedPlatformId, userId) { userR ->
-            // system error
-            if (userR.failed()) {
-              promise.fail(SystemException(cause = userR.cause()))
-              logger.error("Unexpected error happens at refreshAuthorization", userR.cause())
-              return@findUserById
-            }
-            // user not found
-            val user = userR.result()
-            if (user == null) {
-              promise.fail(InvalidCredentialException())
-              logger.warn("User not found at refreshAuthorization, platformId: $trimmedPlatformId, userId: $trimmedUserId")
-              return@findUserById
-            }
-            // generate a new token now
-            this.generateToken(user, device).onComplete(promise::handle)
+        val userId: String = vertxUser.get("sub")
+        userDBService.findUserById(trimmedPlatformId, userId) { userR ->
+          // system error
+          if (userR.failed()) {
+            promise.fail(SystemException(cause = userR.cause()))
+            logger.error("Unexpected error happens at refreshAuthorization", userR.cause())
+            return@findUserById
           }
+          // user not found
+          val user = userR.result()
+          if (user == null) {
+            promise.fail(InvalidCredentialExceptionLuv())
+            logger.warn("User not found at refreshAuthorization, platformId: $trimmedPlatformId, userId: $userId")
+            return@findUserById
+          }
+          // generate a new token now
+          this.generateToken(user, device).onComplete(promise::handle)
         }
       }
     return promise.future()
@@ -150,13 +146,13 @@ class AuthFeatureImpl(vertx: Vertx, securityConfig: JsonObject) : AuthFeature {
     val issuedAt = Instant.now().epochSecond
     val accessTokenExpiredAt = issuedAt + accessTokenExpiresInSeconds
     val refreshTokenExpiredAt = issuedAt + refreshTokenExpiresInSeconds
-    val accessToken = authenticationProvider.generateToken(
+    val accessToken = luvJwtAuth.generateToken(
       jsonObjectOf(
         Pair("iss", "luv-server"), Pair("sub", user.id), Pair("nbf", issuedAt), Pair("iat", issuedAt),
         Pair("exp", accessTokenExpiredAt),
       )
     )
-    val refreshToken = authenticationProvider.generateToken(
+    val refreshToken = luvJwtAuth.generateToken(
       jsonObjectOf(
         Pair("iss", "luv-server"), Pair("sub", user.id), Pair("nbf", issuedAt), Pair("iat", issuedAt),
         Pair("exp", refreshTokenExpiredAt), Pair("refresh", true)

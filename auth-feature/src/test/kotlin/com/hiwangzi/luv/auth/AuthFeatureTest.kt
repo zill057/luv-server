@@ -43,7 +43,10 @@ class AuthFeatureTest {
       identifier = "18812345678",
       credential = "test"
     )
-      .onSuccess { testContext.completeNow() }
+      .onSuccess {
+        logger.debug(it.toJson().encodePrettily())
+        testContext.completeNow()
+      }
       .onFailure { testContext.failNow(it) }
   }
 
@@ -62,7 +65,6 @@ class AuthFeatureTest {
         authFeature.refreshAuthorization(
           platformId = "4381600b-4c08-4707-a054-ecd009933b92",
           device = Device(name = AuthFeatureTest::class.java.canonicalName, os = "macOS 11.3.1", ip = "127.0.0.1"),
-          userId = "6228df95-4458-4d5b-9d2f-48fe8f19ba35",
           refreshToken = auth.refreshToken
         )
       }

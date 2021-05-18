@@ -16,8 +16,8 @@ fun authFeatureOf(vertx: Vertx, securityConfig: JsonObject): AuthFeature {
 
 interface AuthFeature {
 
-  val authenticationProvider: AuthenticationProvider // for stomp server
-  val authenticationHandler: AuthenticationHandler // for http server
+  val stompAuthenticationProvider: AuthenticationProvider
+  val httpAuthenticationHandler: AuthenticationHandler
 
   fun authenticate(accessToken: String): Future<io.vertx.ext.auth.User>
 
@@ -45,7 +45,6 @@ interface AuthFeature {
   fun refreshAuthorization(
     platformId: String,
     device: Device,
-    userId: String,
     refreshToken: String
   ): Future<Authorization>
 
