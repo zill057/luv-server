@@ -37,9 +37,14 @@ interface IMDBService {
    * List messages by group id
    *
    * @param groupId group id
+   * @param createdBefore message created before
+   * @param limit count limit
    * @param resultHandler handle result `message`
    */
-  fun listMessagesByGroupId(groupId: String, resultHandler: Handler<AsyncResult<List<IMMessage>>>)
+  fun listMessagesByGroupId(
+    groupId: String, createdBefore: Long, limit: Int,
+    resultHandler: Handler<AsyncResult<List<IMMessage>>>
+  )
 
   fun saveMessage(
     groupId: String,

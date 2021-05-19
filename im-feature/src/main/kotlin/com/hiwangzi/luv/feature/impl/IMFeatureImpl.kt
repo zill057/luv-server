@@ -49,11 +49,14 @@ class IMFeatureImpl(vertx: Vertx) : IMFeature {
     return promise.future()
   }
 
-  override fun listMessagesByGroupId(groupId: String): Future<List<IMMessage>> {
+  override fun listMessagesByGroupId(groupId: String, before: Long, perPage: Int): Future<List<IMMessage>> {
     val promise = Promise.promise<List<IMMessage>>()
-    imDBService.listMessagesByGroupId(groupId) { messagesR ->
+    val now = System.currentTimeMillis()
+    val createdBefore = if (before < now) before else now
+    val limit = if (perPage in 1..100) perPage else 100
+    imDBService.listMessagesByGroupId(groupId, createdBefore, limit) { messagesR ->
       if (messagesR.succeeded()) {
-        promise.complete(messagesR.result())
+        promise.complete(messagesR.result().reversed())
       } else {
         promise.fail(messagesR.cause())
       }

@@ -16,7 +16,7 @@ class MessageRouteConfigurator(vertx: Vertx, private val authFeature: AuthFeatur
   override fun configure(router: Router) {
 
     /**
-     * @api {get} /im-groups/:id/messages 拉取IM群组消息记录
+     * @api {get} /im-groups/:id/messages 拉取IM群组消息记录 🎯
      * @apiDescription 通过`before`参数**分页**
      * @apiName ListMessages
      * @apiGroup Message
@@ -50,7 +50,9 @@ class MessageRouteConfigurator(vertx: Vertx, private val authFeature: AuthFeatur
       .handler { ctx ->
         val request = ctx.request()
         val groupId = getQueryParam(request, "id", "path", UUID_REGEX)
-        imFeature.listMessagesByGroupId(groupId)
+        val before = request.getParam("before")?.toLongOrNull() ?: System.currentTimeMillis()
+        val perPage = request.getParam("perPage")?.toIntOrNull() ?: 10
+        imFeature.listMessagesByGroupId(groupId, before, perPage)
           .onSuccess { ctx.response().endJsonArray(JsonArray(it)) }
           .onFailure { ctx.fail(it) }
       }

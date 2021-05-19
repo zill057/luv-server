@@ -13,6 +13,9 @@ import io.vertx.core.Future
 import io.vertx.core.Handler
 import io.vertx.pgclient.PgPool
 import io.vertx.sqlclient.Tuple
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneId
 
 class IMDBServiceImpl(private val pgPool: PgPool) : IMDBService {
 
@@ -136,7 +139,7 @@ class IMDBServiceImpl(private val pgPool: PgPool) : IMDBService {
   }
 
   override fun listMessagesByGroupId(
-    groupId: String,
+    groupId: String, before: Long, limit: Int,
     resultHandler: Handler<AsyncResult<List<IMMessage>>>
   ) {
     val sql = """
@@ -147,10 +150,18 @@ class IMDBServiceImpl(private val pgPool: PgPool) : IMDBService {
              t_msg.content,
              t_msg.created_at
       FROM luv_im.messages as t_msg
-      WHERE t_msg.group_id = $1
+      WHERE t_msg.group_id = $1 AND t_msg.created_at < $2
+      ORDER BY t_msg.created_at DESC
+      LIMIT $3
     """.trimIndent()
     pgPool.preparedQuery(sql)
-      .execute(Tuple.of(groupId))
+      .execute(
+        Tuple.of(
+          groupId,
+          OffsetDateTime.ofInstant(Instant.ofEpochMilli(before), ZoneId.of("Asia/Shanghai")),
+          limit
+        )
+      )
       .onSuccess { rowSet ->
         val members = rowSet.map { row ->
           IMMessage(

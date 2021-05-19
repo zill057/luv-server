@@ -19,8 +19,7 @@ interface IMFeature {
 
   fun listGroupsByUserId(userId: String): Future<List<IMGroup>>
 
-  // TODO pagination
-  fun listMessagesByGroupId(groupId: String): Future<List<IMMessage>>
+  fun listMessagesByGroupId(groupId: String, before: Long, perPage: Int): Future<List<IMMessage>>
 
   fun saveMessage(groupId: String, message: IMMessage): Future<IMMessage>
 
