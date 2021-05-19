@@ -4,6 +4,7 @@ import com.hiwangzi.luv.database.DatabaseVerticle
 import com.hiwangzi.luv.model.enumeration.UserIdentityType
 import com.hiwangzi.luv.model.resource.Device
 import io.vertx.config.ConfigRetriever
+import io.vertx.core.CompositeFuture
 import io.vertx.core.Vertx
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
@@ -85,8 +86,10 @@ class AuthFeatureTest {
     )
       .compose { auth ->
         logger.debug("generated access token: ${auth.accessToken}")
-        authFeature.authenticate(auth.accessToken)
-        authFeature.authenticateRefreshToken(auth.refreshToken)
+        CompositeFuture.all(
+          authFeature.authenticate(auth.accessToken),
+          authFeature.authenticateRefreshToken(auth.refreshToken)
+        )
       }
       .onSuccess { testContext.completeNow() }
       .onFailure { testContext.failNow(it) }

@@ -6,7 +6,6 @@ import com.hiwangzi.luv.auth.http.LuvHTTPAuthenticationHandler
 import com.hiwangzi.luv.auth.jwt.LuvJWTAuth
 import com.hiwangzi.luv.database.service.UserDBServiceFactory
 import com.hiwangzi.luv.model.enumeration.UserIdentityType
-import com.hiwangzi.luv.model.exception.ExpiredRefreshTokenException
 import com.hiwangzi.luv.model.exception.InvalidCredentialExceptionLuv
 import com.hiwangzi.luv.model.exception.SystemException
 import com.hiwangzi.luv.model.resource.Authorization
@@ -38,21 +37,7 @@ class AuthFeatureImpl(vertx: Vertx, securityConfig: JsonObject) : AuthFeature {
   }
 
   override fun authenticateRefreshToken(refreshToken: String): Future<io.vertx.ext.auth.User> {
-    val promise = Promise.promise<io.vertx.ext.auth.User>()
-    luvJwtAuth.authenticate(jsonObjectOf(Pair("token", refreshToken))) { userR ->
-      if (userR.succeeded()) {
-        val user = userR.result()
-        if (user.get("refresh")) {
-          promise.complete(user)
-        } else {
-          promise.fail(ExpiredRefreshTokenException(message = "Invalid refresh token"))
-        }
-      } else {
-        val cause = userR.cause()
-        promise.fail(ExpiredRefreshTokenException(message = cause.message ?: "", cause = cause))
-      }
-    }
-    return promise.future()
+    return luvJwtAuth.authenticateRefreshToken(refreshToken)
   }
 
   override fun generateAuthorization(
@@ -149,13 +134,13 @@ class AuthFeatureImpl(vertx: Vertx, securityConfig: JsonObject) : AuthFeature {
     val accessToken = luvJwtAuth.generateToken(
       jsonObjectOf(
         Pair("iss", "luv-server"), Pair("sub", user.id), Pair("nbf", issuedAt), Pair("iat", issuedAt),
-        Pair("exp", accessTokenExpiredAt),
+        Pair("exp", accessTokenExpiredAt), Pair("type", "access")
       )
     )
     val refreshToken = luvJwtAuth.generateToken(
       jsonObjectOf(
         Pair("iss", "luv-server"), Pair("sub", user.id), Pair("nbf", issuedAt), Pair("iat", issuedAt),
-        Pair("exp", refreshTokenExpiredAt), Pair("refresh", true)
+        Pair("exp", refreshTokenExpiredAt), Pair("type", "refresh")
       )
     )
     userDBService.saveUserAuthorization(
