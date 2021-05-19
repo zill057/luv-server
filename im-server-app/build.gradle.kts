@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 plugins {
   id("com.hiwangzi.luv.kotlin-application-conventions")
@@ -23,14 +24,16 @@ dependencies {
   implementation("com.hiwangzi.luv:model")
   implementation("com.hiwangzi.luv:database") // only for starting verticle
   implementation("com.hiwangzi.luv:auth-feature")
-  implementation("com.hiwangzi.luv:user-feature")
   implementation("com.hiwangzi.luv:im-feature")
   // json
   implementation("com.fasterxml.jackson.core:jackson-databind")
-  // web
-  implementation("io.vertx:vertx-web:$vertxVersion")
-  // test
-  testImplementation("io.vertx:vertx-web-client:$vertxVersion'")
+  // service proxies
+  implementation("io.vertx:vertx-service-proxy:$vertxVersion")
+  compileOnly("io.vertx:vertx-codegen:$vertxVersion")
+  kapt("io.vertx:vertx-codegen:$vertxVersion:processor")
+  kapt("io.vertx:vertx-service-proxy:$vertxVersion")
+  // stomp
+  implementation("io.vertx:vertx-stomp:$vertxVersion")
 }
 
 tasks.withType<ShadowJar> {
@@ -39,6 +42,13 @@ tasks.withType<ShadowJar> {
     attributes(mapOf("Main-Verticle" to mainVerticleName))
   }
   mergeServiceFiles()
+}
+
+tasks.withType<Test> {
+  useJUnitPlatform()
+  testLogging {
+    events = setOf(PASSED, SKIPPED, FAILED)
+  }
 }
 
 tasks.withType<JavaExec> {
