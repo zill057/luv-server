@@ -2,7 +2,7 @@
 <Configuration status="WARN" strict="true" name="im-server-app">
 
   <Properties>
-    <Property name="logDirectory">${sys:user.home}/logs</Property>
+    <Property name="logDirectory">logs</Property>
     <Property name="logFileName">${logDirectory}/im-server-app.log</Property>
     <Property name="logFilePattern">${logDirectory}/$${date:yyyy-MM}/im-server-app-%d{yyyy-MM-dd}.log.gz</Property>
   </Properties>

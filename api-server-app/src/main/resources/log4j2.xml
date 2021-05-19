@@ -2,7 +2,7 @@
 <Configuration status="WARN" strict="true" name="api-server-app">
 
   <Properties>
-    <Property name="logDirectory">${sys:user.home}/logs</Property>
+    <Property name="logDirectory">logs</Property>
     <Property name="logFileName">${logDirectory}/api-server-app.log</Property>
     <Property name="logFilePattern">${logDirectory}/$${date:yyyy-MM}/api-server-app-%d{yyyy-MM-dd}.log.gz</Property>
   </Properties>
@@ -29,7 +29,7 @@
   </Appenders>
 
   <Loggers>
-    <Root level="INFO">
+    <Root level="DEBUG">
       <AppenderRef ref="console"/>
       <AppenderRef ref="logDaily"/>
     </Root>

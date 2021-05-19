@@ -23,7 +23,7 @@ import java.time.Instant
 class AuthFeatureImpl(vertx: Vertx, securityConfig: JsonObject) : AuthFeature {
 
   private val logger = LoggerFactory.getLogger(AuthFeatureImpl::class.java)
-  private val accessTokenExpiresInSeconds = securityConfig.getInteger("tokenExpiresInMinutes", 30) * 60
+  private val accessTokenExpiresInSeconds = securityConfig.getInteger("tokenExpiresInMinutes", 1440) * 60
   private val refreshTokenExpiresInSeconds = securityConfig.getInteger("refreshTokenExpiresInMinutes", 10080) * 60
   private val userDBService = UserDBServiceFactory.createProxy(vertx)
   private val luvJwtAuth = LuvJWTAuth(vertx, securityConfig)

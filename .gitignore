@@ -12,5 +12,5 @@ build
 !gradle-wrapper.jar
 
 ### Config, Uploads ###
-config.json
+config*.json
 file-uploads
