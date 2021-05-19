@@ -9,6 +9,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.handler.CorsHandler
+import io.vertx.ext.web.handler.StaticHandler
 import org.slf4j.LoggerFactory
 
 class RouterBuilder(
@@ -19,15 +20,14 @@ class RouterBuilder(
   private val logger = LoggerFactory.getLogger(RouterBuilder::class.java)
   private val authFeature = authFeatureOf(vertx, securityConfig)
   private val requestBodyLimit = securityConfig.getLong("requestBodyLimitInBytes", 2097152) // 2MB as default
-  private val userHome = System.getProperty("user.home")
-  private val uploadsDirectory = uploadsConfig.getString("uploadsDirectory", "$userHome/file-uploads")
-  private val userFilesHost = uploadsConfig.getString("userFilesHost", "http://localhost")
-  private val processedDirectory = uploadsConfig.getString("processedDirectory", "$userHome/file-uploads")
+  private val uploadsDir = uploadsConfig.getString("directory", "file-uploads")
+  private val uploadsHost = uploadsConfig.getString("host", "http://localhost")
 
   fun build(): Router {
     val router = Router.router(vertx)
-    router.route().handler(BodyHandler.create().setBodyLimit(requestBodyLimit).setUploadsDirectory(uploadsDirectory))
+    router.route().handler(BodyHandler.create().setBodyLimit(requestBodyLimit).setUploadsDirectory(uploadsDir))
     addCorsHandler(router)
+    addStaticHandler(router)
     addLuvRoute(router)
     addGeneralErrorsHandler(router)
     addOtherErrorsHandler(router)
@@ -41,9 +41,14 @@ class RouterBuilder(
     router.route().handler(corsHandler)
   }
 
+  private fun addStaticHandler(router: Router) {
+    val staticHandler = StaticHandler.create(uploadsDir).setIncludeHidden(false).setDirectoryListing(false)
+    router.route("/*").handler(staticHandler)
+  }
+
   private fun addLuvRoute(router: Router) {
     AuthorizationRouteConfigurator(authFeature).configure(router)
-    UserFileRouteConfigurator(vertx, authFeature, userFilesHost, processedDirectory).configure(router)
+    UserFileRouteConfigurator(vertx, authFeature, uploadsDir, uploadsHost).configure(router)
     UserRouteConfigurator(vertx, authFeature).configure(router)
     IMGroupRouteConfigurator(vertx, authFeature).configure(router)
     MessageRouteConfigurator(vertx, authFeature).configure(router)

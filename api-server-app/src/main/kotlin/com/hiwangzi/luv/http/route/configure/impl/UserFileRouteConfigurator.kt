@@ -13,8 +13,7 @@ import io.vertx.kotlin.core.json.jsonObjectOf
 class UserFileRouteConfigurator(
   private val vertx: Vertx,
   private val authFeature: AuthFeature,
-  private val userFilesHost: String,
-  private val processedDirectory: String,
+  private val uploadsDir: String, private val uploadsHost: String
 ) : RouteConfigurator() {
 
   override fun configure(router: Router) {
@@ -57,16 +56,16 @@ class UserFileRouteConfigurator(
         val name = file.uploadedFileName().split("/").last()
         val extension = file.fileName().split(".").last()
         val fs = vertx.fileSystem()
-        fs.exists("$processedDirectory/$userId")
+        fs.exists("$uploadsDir/$userId")
           .compose { existed ->
             if (existed) Future.succeededFuture()
-            else fs.mkdirs("$processedDirectory/$userId")
+            else fs.mkdirs("$uploadsDir/$userId")
           }
           .compose {
-            fs.move(file.uploadedFileName(), "$processedDirectory/$userId/$name.$extension")
+            fs.move(file.uploadedFileName(), "$uploadsDir/$userId/$name.$extension")
           }
           .onSuccess {
-            ctx.response().endJsonObject(jsonObjectOf(Pair("url", "$userFilesHost/$userId/$name.$extension")))
+            ctx.response().endJsonObject(jsonObjectOf(Pair("url", "$uploadsHost/$userId/$name.$extension")))
           }
           .onFailure { ctx.fail(it) }
       }
