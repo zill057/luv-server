@@ -1,6 +1,7 @@
 package com.hiwangzi.luv.stomp.handler
 
 import com.hiwangzi.luv.feature.imFeatureOf
+import com.hiwangzi.luv.model.enumeration.message.MessageType
 import com.hiwangzi.luv.model.resource.IMMessage
 import com.hiwangzi.luv.stomp.service.BroadcastBizServiceFactory
 import io.vertx.core.Vertx
@@ -45,6 +46,7 @@ class LuvSendHandler(vertx: Vertx, private val stompHandler: StompServerHandler)
         message.put("id", UUID.randomUUID().toString())
         message.put("groupId", groupId)
         message.put("senderId", user.get("sub")) // get user id from jwt token
+        message.put("messageType", MessageType.USER_MESSAGE) // get user id from jwt token
         logger.info("Broadcast message in group: $groupId")
         broadcastBizService.broadcastMessage(it, message)
         imFeature.saveMessage(groupId, IMMessage(message))

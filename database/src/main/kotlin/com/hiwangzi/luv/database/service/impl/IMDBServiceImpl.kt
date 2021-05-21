@@ -139,7 +139,7 @@ class IMDBServiceImpl(private val pgPool: PgPool) : IMDBService {
   }
 
   override fun listMessagesByGroupId(
-    groupId: String, before: Long, limit: Int,
+    groupId: String, createdBefore: Long, limit: Int,
     resultHandler: Handler<AsyncResult<List<IMMessage>>>
   ) {
     val sql = """
@@ -158,7 +158,7 @@ class IMDBServiceImpl(private val pgPool: PgPool) : IMDBService {
       .execute(
         Tuple.of(
           groupId,
-          OffsetDateTime.ofInstant(Instant.ofEpochMilli(before), ZoneId.of("Asia/Shanghai")),
+          OffsetDateTime.ofInstant(Instant.ofEpochMilli(createdBefore), ZoneId.of("Asia/Shanghai")),
           limit
         )
       )
@@ -166,7 +166,7 @@ class IMDBServiceImpl(private val pgPool: PgPool) : IMDBService {
         val members = rowSet.map { row ->
           IMMessage(
             id = row.getUUID("id").toString(),
-            senderId = row.getUUID("from_user").toString(),
+            senderId = row.getUUID("from_user")?.toString(),
             messageType = MessageType.fromCode(row.getInteger("message_type")),
             contentType = ContentType.fromCode(row.getInteger("content_type")),
             content = row.getString("content"),
