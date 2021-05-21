@@ -11,6 +11,7 @@ build
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
 !gradle-wrapper.jar
 
-### Config, Uploads ###
+### Config, Uploads, logs ###
 config*.json
 file-uploads
+*.log*
