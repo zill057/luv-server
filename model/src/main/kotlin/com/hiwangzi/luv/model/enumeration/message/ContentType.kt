@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonValue
 
 enum class ContentType(val code: Int, private val displayName: String) {
   TEXT_PLAIN(0, "text/plain"),
-  TEXT_IMAGE_URL(1, "text/image-url");
+  TEXT_IMAGE_URL(1, "text/image-url"),
+  TEXT_HTML(2, "text/html"),
+  ;
 
   companion object {
     fun fromCode(code: Int): ContentType {
