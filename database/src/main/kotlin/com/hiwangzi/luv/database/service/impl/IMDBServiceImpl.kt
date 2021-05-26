@@ -104,7 +104,7 @@ class IMDBServiceImpl(private val pgPool: PgPool) : IMDBService {
           WHERE t_u_g_rs.user_id = $1
           ORDER BY t_msg.group_id, t_msg.created_at DESC
       ) t
-      ORDER BY created_at
+      ORDER BY created_at DESC
     """.trimIndent()
     pgPool.preparedQuery(sql)
       .execute(Tuple.of(userId))
