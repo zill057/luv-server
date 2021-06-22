@@ -3,6 +3,7 @@
 * 遵循统一的 Restful 的设计风格
 * 使用 JSON 作为数据交互的格式
 * 所有需要鉴权的接口均需设置 HTTP 头部：`Authorization: Bearer $accessToken`，详情见[鉴权机制](#Authentication)
+* 所有请求接口均需设置 HTTP 头部：`X-PLATFORM-ID: $平台ID`
 
 ## 规则说明
 

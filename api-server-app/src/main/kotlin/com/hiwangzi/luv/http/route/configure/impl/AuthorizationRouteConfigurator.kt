@@ -18,7 +18,6 @@ class AuthorizationRouteConfigurator(private val authFeature: AuthFeature) : Rou
      * @apiGroup Authorization
      * @apiVersion 1.0.0
      *
-     * @apiParam (Header参数) {UUID} X-PLATFORM-ID 平台ID
      * @apiParam (body参数) {String} username 用户名
      * @apiParam (body参数) {String} password 密码
      * @apiParamExample 请求示例 (URL)
@@ -64,7 +63,6 @@ class AuthorizationRouteConfigurator(private val authFeature: AuthFeature) : Rou
      * @apiGroup Authorization
      * @apiVersion 1.0.0
      *
-     * @apiParam (Header参数) {UUID} X-PLATFORM-ID 平台ID
      * @apiParamExample 请求示例 (URL)
      *     /authorizations/by/refresh-token
      * @apiParamExample 请求示例 (JSON)
@@ -107,7 +105,6 @@ class AuthorizationRouteConfigurator(private val authFeature: AuthFeature) : Rou
      * @apiGroup Authorization
      * @apiVersion 1.0.0
      *
-     * @apiParam (Header参数) {UUID} X-PLATFORM-ID 平台ID
      * @apiParam (路径参数) {UUID} id 授权id
      * @apiParamExample 请求示例 (URL)
      *     /authorizations/d211abe0-c1af-42a2-9aba-784130ca92fa

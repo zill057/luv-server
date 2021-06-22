@@ -24,7 +24,6 @@ class UserFileRouteConfigurator(
      * @apiGroup File
      * @apiVersion 1.0.0
      *
-     * @apiParam (Header参数) {UUID} X-PLATFORM-ID 平台ID
      * @apiParam (路径参数) {UUID} id 用户id
      * @apiParam (body参数) {File} file 文件
      * @apiParamExample 请求示例 (URL)
